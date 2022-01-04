@@ -1,4 +1,4 @@
-version: "3.x"
+version: "3"
 
 services:
   neo4j:
@@ -26,4 +26,3 @@ services:
       interval: 1s
       timeout: 10s
       retries: 20
-      start_period: 3s
