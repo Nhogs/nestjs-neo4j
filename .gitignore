@@ -105,8 +105,5 @@ dist
 
 # IntelliJ project files
 .idea
-
 .dist
-
-data
-plugins
+.neo4j
