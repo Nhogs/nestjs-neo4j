@@ -107,3 +107,6 @@ dist
 .idea
 
 .dist
+
+data
+plugins
