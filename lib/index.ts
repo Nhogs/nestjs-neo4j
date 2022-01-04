@@ -1,2 +1,3 @@
-export * from './nestjs-neo4j.module';
-export * from './nestjs-neo4j.service';
+export * from './neo4j.module';
+export * from './service';
+export * from './interceptor';
