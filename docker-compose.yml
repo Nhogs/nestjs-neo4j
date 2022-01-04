@@ -1,12 +1,12 @@
-version: "3.8"
+version: '3.8'
 
 services:
   neo4j:
     image: neo4j:4.4.2-enterprise
     restart: unless-stopped
     ports:
-      - 7474:7474
-      - 7687:7687
+      - "7474:7474"
+      - "7687:7687"
     volumes:
       - ./.neo4j/conf:/conf
       - ./.neo4j/data:/data
@@ -27,3 +27,9 @@ services:
       timeout: 10s
       retries: 20
       start_period: 40s
+
+  redis:
+    image: 'redis:alpine'
+    depends_on:
+      neo4j:
+        condition: service_healthy
