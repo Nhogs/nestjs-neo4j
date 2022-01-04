@@ -1,0 +1,12 @@
+.github
+test
+# source
+lib
+index.ts
+package-lock.json
+.eslintrc.js
+tsconfig.json
+tsconfig.build.json
+.prettierrc
+.commitlintrc.json
+*.log
