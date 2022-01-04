@@ -28,8 +28,8 @@ services:
       retries: 20
       start_period: 40s
 
-  redis:
-    image: 'redis:alpine'
+  busybox:
+    image: 'busybox'
     depends_on:
       neo4j:
         condition: service_healthy
