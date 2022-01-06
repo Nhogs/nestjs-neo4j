@@ -1,13 +1,9 @@
 import { DynamicModule, Module, Provider } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import {
-  NEO4J_CONFIG,
-  NEO4J_DRIVER,
-  Neo4jConfig,
-  Neo4jService,
-} from './service/neo4j.service';
-import { Neo4jTransactionInterceptor } from './interceptor/neo4j-transaction.interceptor';
 import neo4j, { Driver } from 'neo4j-driver';
+import { Neo4jConfig } from './interface';
+import { NEO4J_CONFIG, NEO4J_DRIVER } from './constant';
+import { Neo4jService } from './service';
 
 export const createDriver = async (config: Neo4jConfig) => {
   const driver: Driver = neo4j.driver(
@@ -25,7 +21,7 @@ export class Neo4jModule {
   static forRoot(config: Neo4jConfig): DynamicModule {
     return {
       module: Neo4jModule,
-      global: true,
+      global: config.global,
       providers: [
         {
           provide: NEO4J_CONFIG,
@@ -38,7 +34,7 @@ export class Neo4jModule {
         },
         Neo4jService,
       ],
-      exports: [Neo4jService, Neo4jTransactionInterceptor],
+      exports: [Neo4jService],
     };
   }
 

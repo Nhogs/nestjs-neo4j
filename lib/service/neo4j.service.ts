@@ -1,25 +1,7 @@
 import neo4j, { Driver, int, Result, Transaction } from 'neo4j-driver';
 import { Inject, Injectable, OnApplicationShutdown } from '@nestjs/common';
-
-export const NEO4J_CONFIG: string = 'NEO4J_CONFIG';
-export const NEO4J_DRIVER: string = 'NEO4J_DRIVER';
-
-export type Neo4jScheme =
-  | 'neo4j'
-  | 'neo4j+s'
-  | 'neo4j+ssc'
-  | 'bolt'
-  | 'bolt+s'
-  | 'bolt+ssc';
-
-export interface Neo4jConfig {
-  scheme: Neo4jScheme;
-  host: string;
-  port: number | string;
-  username: string;
-  password: string;
-  database?: string;
-}
+import { NEO4J_CONFIG, NEO4J_DRIVER } from '../constant';
+import { Neo4jConfig } from '../interface';
 
 @Injectable()
 export class Neo4jService implements OnApplicationShutdown {
@@ -38,12 +20,6 @@ export class Neo4jService implements OnApplicationShutdown {
 
   int(value: number) {
     return int(value);
-  }
-
-  beginTransaction(database?: string): Transaction {
-    const session = this.getWriteSession(database);
-
-    return session.beginTransaction();
   }
 
   getReadSession(database?: string) {
@@ -72,20 +48,24 @@ export class Neo4jService implements OnApplicationShutdown {
   write(
     cypher: string,
     params?: Record<string, any>,
-    databaseOrTransaction?: string | Transaction,
+    database?: string,
   ): Result {
-    if (databaseOrTransaction instanceof Transaction) {
-      return (<Transaction>databaseOrTransaction).run(cypher, params);
-    }
 
-    const session = this.getWriteSession(<string>databaseOrTransaction);
+    const session = this.getWriteSession(database);
     return session.run(cypher, params);
+  }
+
+  ftQueryNode(indexVar: string, searchVar): string {
+    return (
+      'CALL db.index.fulltext.queryNodes($' +
+      indexVar +
+      ', $' +
+      searchVar +
+      ') YIELD node, score'
+    );
   }
 
   onApplicationShutdown() {
     return this.driver.close();
   }
 }
-
-export const FT_QUERY_NODE =
-  'CALL db.index.fulltext.queryNodes($index, $search) YIELD node, score';

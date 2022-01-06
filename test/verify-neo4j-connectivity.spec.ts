@@ -1,6 +1,6 @@
 import neo4j, { Driver } from 'neo4j-driver';
 
-describe('App (e2e)', () => {
+describe('Verify Neo4j Connectivity', () => {
   let driver: Driver;
 
   beforeAll(async () => {
