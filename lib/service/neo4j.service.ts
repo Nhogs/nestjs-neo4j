@@ -10,14 +10,6 @@ export class Neo4jService implements OnApplicationShutdown {
     @Inject(NEO4J_DRIVER) private readonly driver: Driver,
   ) {}
 
-  getDriver(): Driver {
-    return this.driver;
-  }
-
-  getConfig(): Neo4jConfig {
-    return this.config;
-  }
-
   int(value: number) {
     return int(value);
   }
@@ -53,16 +45,6 @@ export class Neo4jService implements OnApplicationShutdown {
 
     const session = this.getWriteSession(database);
     return session.run(cypher, params);
-  }
-
-  ftQueryNode(indexVar: string, searchVar): string {
-    return (
-      'CALL db.index.fulltext.queryNodes($' +
-      indexVar +
-      ', $' +
-      searchVar +
-      ') YIELD node, score'
-    );
   }
 
   onApplicationShutdown() {

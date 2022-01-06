@@ -1,7 +1,7 @@
 import * as request from 'supertest';
 import { Test } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
-import { AppModule } from './src/app.module';
+import { AppAsyncModule } from './src/app.async.module';
 import { Neo4jService } from '../lib';
 
 describe('Cats', () => {
@@ -9,7 +9,7 @@ describe('Cats', () => {
   let neo4jService: Neo4jService;
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({
-      imports: [AppModule],
+      imports: [AppAsyncModule],
     }).compile();
 
     app = moduleRef.createNestApplication();
@@ -24,13 +24,13 @@ describe('Cats', () => {
   it(`/post /get cats`, (done) => {
     request(app.getHttpServer())
       .post('/cats')
-      .send({ name: 'Gypsy', age: 5, breed: 'Maine Coon' })
+      .send({ name: 'Toby', age: 3, breed: 'Persan' })
       .expect(201)
       .then(() => {
         request(app.getHttpServer())
           .get('/cats')
           .expect(200)
-          .expect([{ name: 'Gypsy', age: 5, breed: 'Maine Coon' }])
+          .expect([{ name: 'Toby', age: 3, breed: 'Persan' }])
           .then(() => {
             done();
           });
