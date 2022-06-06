@@ -1,6 +1,5 @@
 import { Module } from '@nestjs/common';
 import { Neo4jConfig, Neo4jModule } from '../../lib';
-import { CatsModule } from './cat/cats.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { PersonModule } from './person/person.module';
 
@@ -19,7 +18,6 @@ import { PersonModule } from './person/person.module';
       }),
       global: true,
     }),
-    CatsModule,
     PersonModule,
     ConfigModule.forRoot({
       envFilePath: './test/src/.test.env',

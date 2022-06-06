@@ -21,6 +21,17 @@ describe('Cats', () => {
     await neo4jService.write('MATCH (n) DETACH DELETE n');
   });
 
+  it('should generate constraints', async () => {
+    const constraints = neo4jService.getCypherConstraints();
+    expect(constraints).toMatchInlineSnapshot(`
+      Array [
+        "CREATE CONSTRAINT \`name_is_unique\` IF NOT EXISTS FOR (p:\`Cat\`) REQUIRE p.\`name\` IS NODE KEY",
+      ]
+    `);
+
+    await neo4jService.write(constraints[0]);
+  });
+
   it(`/post /get cats`, (done) => {
     request(app.getHttpServer())
       .post('/cats')

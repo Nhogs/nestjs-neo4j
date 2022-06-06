@@ -1,3 +1,16 @@
+const start = (name: string, ifNotExists: boolean) =>
+  `CREATE CONSTRAINT${name ? ` \`${name}\`` : ''}${
+    ifNotExists ? ` IF NOT EXISTS` : ''
+  } FOR`;
+
+const target = (isRel: boolean, label: string) =>
+  isRel ? ` ()-[p:\`${label}\`]-()` : ` (p:\`${label}\`)`;
+
+const properties = (props: string[]) =>
+  `${props.length > 1 ? `(` : ``}${props
+    .map((p) => `p.\`` + p + `\``)
+    .join(`, `)}${props.length > 1 ? `)` : ``}`;
+
 export const createCypherConstraint = (
   name: string,
   ifNotExists: boolean,
@@ -6,35 +19,8 @@ export const createCypherConstraint = (
   props: string[],
   constraintType: string,
 ) => {
-  let query = 'CREATE CONSTRAINT';
-
-  if (name) {
-    query += ` \`${name}\``;
-  }
-
-  if (ifNotExists) {
-    query += ` IF NOT EXISTS`;
-  }
-
-  query += ` FOR`;
-
-  if (isRel) {
-    query += ` ()-[p:\`${label}\`]-()`;
-  } else {
-    query += ` (p:\`${label}\`)`;
-  }
-
-  query += ` REQUIRE `;
-
-  if (props.length > 1) {
-    query += `(`;
-  }
-
-  query += props.map((p) => `p.\`` + p + `\``).join(`,`);
-
-  if (props.length > 1) {
-    query += ` )`;
-  }
-  query += ' ' + constraintType;
-  return query;
+  return `${start(name, ifNotExists)}${target(
+    isRel,
+    label,
+  )} REQUIRE ${properties(props)} ${constraintType}`;
 };
