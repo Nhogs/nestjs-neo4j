@@ -18,7 +18,7 @@ describe('Verify Neo4j Connectivity', () => {
     expect(await driver.verifyConnectivity()).toMatchInlineSnapshot(`
       Object {
         "address": "localhost:7687",
-        "version": "Neo4j/4.4.2",
+        "version": "Neo4j/4.4.7",
       }
     `);
   });

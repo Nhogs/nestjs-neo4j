@@ -8,6 +8,7 @@ import neo4j, {
 import { Inject, Injectable, OnApplicationShutdown } from '@nestjs/common';
 import { NEO4J_CONFIG, NEO4J_DRIVER } from '../constant';
 import { Neo4jConfig } from '../interface';
+import { Neo4jMetadataStorage } from '../storage';
 
 @Injectable()
 export class Neo4jService implements OnApplicationShutdown {
@@ -51,6 +52,10 @@ export class Neo4jService implements OnApplicationShutdown {
   ): Result {
     const session = this.getWriteSession(database);
     return session.run(cypher, params);
+  }
+
+  getCypherConstraints(): string[] {
+    return Neo4jMetadataStorage.getCypherConstraints();
   }
 
   onApplicationShutdown() {

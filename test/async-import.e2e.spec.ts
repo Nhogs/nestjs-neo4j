@@ -3,8 +3,10 @@ import { Test } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import { AppAsyncModule } from './src/app.async.module';
 import { Neo4jService } from '../lib';
+import { PersonDto } from './src/person/dto/person.dto';
+import { LikedDto } from './src/person/dto/liked.dto';
 
-describe('Cats', () => {
+describe('Persons', () => {
   let app: INestApplication;
   let neo4jService: Neo4jService;
   beforeAll(async () => {
@@ -21,20 +23,73 @@ describe('Cats', () => {
     await neo4jService.write('MATCH (n) DETACH DELETE n');
   });
 
-  it(`/post /get cats`, (done) => {
+  it(`/post /get Person`, (done) => {
+    const emma: PersonDto = {
+      name: 'Wong',
+      firstname: 'Emi',
+      age: 18,
+      surname: 'Emma',
+    };
+
+    const alex: PersonDto = {
+      name: 'Smith',
+      firstname: 'Alexander',
+      age: 22,
+      surname: 'Alex',
+    };
+
+    const liked: LikedDto = {
+      when: '2020',
+      since: '2000',
+    };
+
     request(app.getHttpServer())
-      .post('/cats')
-      .send({ name: 'Toby', age: 3, breed: 'Persan' })
+      .post('/person')
+      .send(emma)
       .expect(201)
       .then(() => {
         request(app.getHttpServer())
-          .get('/cats')
-          .expect(200)
-          .expect([{ name: 'Toby', age: 3, breed: 'Persan' }])
+          .post('/person')
+          .send(alex)
+          .expect(201)
           .then(() => {
-            done();
+            request(app.getHttpServer())
+              .post('/person/Wong/Smith')
+              .send(liked)
+              .expect(201)
+              .then(() => {
+                request(app.getHttpServer())
+                  .get('/person')
+                  .expect(200)
+                  .expect([{ ...alex }, { ...emma }])
+                  .then(() => {
+                    request(app.getHttpServer())
+                      .get('/person/liked/Wong')
+                      .expect(200)
+                      .expect([[liked, { ...alex }]])
+                      .then(() => {
+                        done();
+                      });
+                  });
+              });
           });
       });
+  });
+
+  it('should generate constraints', () => {
+    expect(neo4jService.getCypherConstraints()).toMatchInlineSnapshot(`
+      Array [
+        "CREATE CONSTRAINT \`node_key_with_config\` FOR (p:\`Person\`) REQUIRE (p.\`name\`,p.\`age\` ) IS NODE KEY",
+        "CREATE CONSTRAINT \`node_exists\` IF NOT EXISTS FOR (p:\`Person\`) REQUIRE p.\`name\` IS NOT NULL",
+        "CREATE CONSTRAINT FOR (p:\`Person\`) REQUIRE p.\`name\` IS NOT NULL",
+        "CREATE CONSTRAINT FOR (p:\`Person\`) REQUIRE p.\`name\` IS UNIQUE",
+        "CREATE CONSTRAINT \`node_key\` FOR (p:\`Person\`) REQUIRE p.\`firstname\` IS NODE KEY",
+        "CREATE CONSTRAINT FOR (p:\`Person\`) REQUIRE (p.\`firstname\`,p.\`surname\` ) IS NODE KEY",
+        "CREATE CONSTRAINT \`uniqueness\` FOR (p:\`Person\`) REQUIRE (p.\`firstname\`,p.\`age\` ) IS UNIQUE",
+        "CREATE CONSTRAINT FOR ()-[p:\`LIKED\`]-() REQUIRE p.\`when\` IS NOT NULL",
+        "CREATE CONSTRAINT \`relationship_exists\` FOR ()-[p:\`LIKED\`]-() REQUIRE p.\`since\` IS NOT NULL",
+      ]
+    `);
   });
 
   afterAll(async () => {
