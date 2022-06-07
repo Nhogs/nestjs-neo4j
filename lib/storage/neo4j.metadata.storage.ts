@@ -18,7 +18,10 @@ export class Neo4jMetadataStorageDef {
   private _constraintMetadata: Array<ConstraintPropertyMetadata> =
     new Array<ConstraintPropertyMetadata>();
 
-  private _cypherConstraints: string[] = [];
+  private _cypherConstraints: Map<string, string[]> = new Map<
+    string,
+    string[]
+  >();
 
   addConstraintPropertyMetadata(metadata: ConstraintPropertyMetadata) {
     this._constraintMetadata.push(metadata);
@@ -29,24 +32,38 @@ export class Neo4jMetadataStorageDef {
       (c) => c.target === metadata.target,
     );
 
-    constraints.forEach((c) => {
-      this._cypherConstraints.push(
-        createCypherConstraint(
-          c.options?.name,
-          c.options?.ifNotExists,
-          metadata.isRel,
-          metadata.name,
-          [c.property].concat(
-            c.options?.additionalKeys ? c.options?.additionalKeys : [],
-          ),
-          c.constraintType,
-        ),
-      );
-    });
+    if (constraints.length > 0) {
+      if (!this._cypherConstraints.has(metadata.name)) {
+        this._cypherConstraints.set(metadata.name, []);
+      }
+
+      constraints.forEach((c) => {
+        this._cypherConstraints
+          .get(metadata.name)
+          .push(
+            createCypherConstraint(
+              c.options?.name,
+              c.options?.ifNotExists,
+              metadata.isRel,
+              metadata.name,
+              [c.property].concat(
+                c.options?.additionalKeys ? c.options?.additionalKeys : [],
+              ),
+              c.constraintType,
+            ),
+          );
+      });
+    }
   }
 
-  getCypherConstraints() {
-    return this._cypherConstraints;
+  getCypherConstraints(label?: string) {
+    if (label) {
+      return this._cypherConstraints.get(label);
+    } else {
+      return ([] as string[]).concat(
+        ...Array.from(this._cypherConstraints.values()),
+      );
+    }
   }
 }
 

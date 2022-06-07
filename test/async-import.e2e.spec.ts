@@ -92,6 +92,29 @@ describe('Persons', () => {
     `);
   });
 
+  it('should generate Person constraints', () => {
+    expect(neo4jService.getCypherConstraints('Person')).toMatchInlineSnapshot(`
+      Array [
+        "CREATE CONSTRAINT \`node_key_with_config\` FOR (p:\`Person\`) REQUIRE (p.\`name\`, p.\`age\`) IS NODE KEY",
+        "CREATE CONSTRAINT \`node_exists\` IF NOT EXISTS FOR (p:\`Person\`) REQUIRE p.\`name\` IS NOT NULL",
+        "CREATE CONSTRAINT FOR (p:\`Person\`) REQUIRE p.\`name\` IS NOT NULL",
+        "CREATE CONSTRAINT FOR (p:\`Person\`) REQUIRE p.\`name\` IS UNIQUE",
+        "CREATE CONSTRAINT \`node_key\` FOR (p:\`Person\`) REQUIRE p.\`firstname\` IS NODE KEY",
+        "CREATE CONSTRAINT FOR (p:\`Person\`) REQUIRE (p.\`firstname\`, p.\`surname\`) IS NODE KEY",
+        "CREATE CONSTRAINT \`uniqueness\` FOR (p:\`Person\`) REQUIRE (p.\`firstname\`, p.\`age\`) IS UNIQUE",
+      ]
+    `);
+  });
+
+  it('should generate LIKED constraints', () => {
+    expect(neo4jService.getCypherConstraints('LIKED')).toMatchInlineSnapshot(`
+      Array [
+        "CREATE CONSTRAINT FOR ()-[p:\`LIKED\`]-() REQUIRE p.\`when\` IS NOT NULL",
+        "CREATE CONSTRAINT \`relationship_exists\` FOR ()-[p:\`LIKED\`]-() REQUIRE p.\`since\` IS NOT NULL",
+      ]
+    `);
+  });
+
   afterAll(async () => {
     await app.close();
   });

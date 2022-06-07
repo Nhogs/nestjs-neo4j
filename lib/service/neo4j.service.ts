@@ -54,8 +54,8 @@ export class Neo4jService implements OnApplicationShutdown {
     return session.run(cypher, params);
   }
 
-  getCypherConstraints(): string[] {
-    return Neo4jMetadataStorage.getCypherConstraints();
+  getCypherConstraints(label?: string): string[] {
+    return Neo4jMetadataStorage.getCypherConstraints(label);
   }
 
   onApplicationShutdown() {
