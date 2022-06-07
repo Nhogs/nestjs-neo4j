@@ -54,7 +54,11 @@ export function Constraint(
       target: target.constructor,
       property: propertyKey.toString(),
       constraintType,
-      options,
+      options: {
+        ...options,
+        ifNotExists: options?.ifNotExists !== false,
+        useCommonName: options?.useCommonName !== false,
+      },
     });
   };
 }
