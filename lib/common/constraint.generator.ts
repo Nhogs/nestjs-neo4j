@@ -24,3 +24,23 @@ export const createCypherConstraint = (
     label,
   )} REQUIRE ${properties(props)} ${constraintType}`;
 };
+
+export const generateCommonName = (
+  name: string,
+  property: string,
+  constraintType: string,
+): string => {
+  let type: string = '';
+
+  if (constraintType === 'IS NODE KEY') {
+    type = 'key';
+  }
+  if (constraintType === 'IS UNIQUE') {
+    type = 'unique';
+  }
+  if (constraintType === 'IS NOT NULL') {
+    type = 'exists';
+  }
+
+  return `${name.toLowerCase()}_${property.toLowerCase()}_${type}`;
+};

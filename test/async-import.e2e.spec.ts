@@ -86,6 +86,8 @@ describe('Persons', () => {
         "CREATE CONSTRAINT \`node_key\` FOR (p:\`Person\`) REQUIRE p.\`firstname\` IS NODE KEY",
         "CREATE CONSTRAINT FOR (p:\`Person\`) REQUIRE (p.\`firstname\`, p.\`surname\`) IS NODE KEY",
         "CREATE CONSTRAINT \`uniqueness\` FOR (p:\`Person\`) REQUIRE (p.\`firstname\`, p.\`age\`) IS UNIQUE",
+        "CREATE CONSTRAINT \`person_surname_exists\` FOR (p:\`Person\`) REQUIRE p.\`surname\` IS NOT NULL",
+        "CREATE CONSTRAINT \`person_surname_unique\` FOR (p:\`Person\`) REQUIRE p.\`surname\` IS UNIQUE",
         "CREATE CONSTRAINT FOR ()-[p:\`LIKED\`]-() REQUIRE p.\`when\` IS NOT NULL",
         "CREATE CONSTRAINT \`relationship_exists\` FOR ()-[p:\`LIKED\`]-() REQUIRE p.\`since\` IS NOT NULL",
       ]
@@ -102,6 +104,8 @@ describe('Persons', () => {
         "CREATE CONSTRAINT \`node_key\` FOR (p:\`Person\`) REQUIRE p.\`firstname\` IS NODE KEY",
         "CREATE CONSTRAINT FOR (p:\`Person\`) REQUIRE (p.\`firstname\`, p.\`surname\`) IS NODE KEY",
         "CREATE CONSTRAINT \`uniqueness\` FOR (p:\`Person\`) REQUIRE (p.\`firstname\`, p.\`age\`) IS UNIQUE",
+        "CREATE CONSTRAINT \`person_surname_exists\` FOR (p:\`Person\`) REQUIRE p.\`surname\` IS NOT NULL",
+        "CREATE CONSTRAINT \`person_surname_unique\` FOR (p:\`Person\`) REQUIRE p.\`surname\` IS UNIQUE",
       ]
     `);
   });

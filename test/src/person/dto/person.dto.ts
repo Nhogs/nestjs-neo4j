@@ -25,6 +25,8 @@ export class PersonDto {
   })
   firstname: string;
 
+  @ConstraintUnique({ useCommonName: true })
+  @ConstraintNotNull({ useCommonName: true })
   surname: string;
 
   age: number;

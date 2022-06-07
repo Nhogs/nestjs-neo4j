@@ -1,5 +1,5 @@
 import { ConstraintOptions } from '../decorator';
-import { createCypherConstraint } from '../common';
+import { createCypherConstraint, generateCommonName } from '../common';
 
 export interface ConstraintPropertyMetadata {
   target: Function;
@@ -23,68 +23,70 @@ export class Neo4jMetadataStorageDef {
     string[]
   >();
 
-  private static _generateCommonName(
+  private static _generateConstraintName(
+    c: ConstraintPropertyMetadata,
+    metadata: ConstraintClassMetadata,
+  ) {
+    let name: string;
+
+    if (c.options?.name) {
+      name = c.options.name;
+    } else if (c.options?.useCommonName) {
+      name = generateCommonName(metadata.name, c.property, c.constraintType);
+    }
+    return name;
+  }
+
+  private _addCypherConstraint(
     name: string,
-    property: string,
-    constraintType: string,
-  ): string {
-    let type: string;
-
-    if (constraintType === 'IS NODE KEY') {
-      type = 'key';
-    }
-    if (constraintType === 'IS UNIQUE') {
-      type = 'unique';
-    }
-    if (constraintType === 'IS NOT NULL') {
-      type = 'exists';
-    }
-
-    return `${name.toLowerCase()}_${property.toLowerCase()}_${type}`;
+    constraintClassMetadata: ConstraintClassMetadata,
+    constraintPropertyMetadata: ConstraintPropertyMetadata,
+  ) {
+    this._cypherConstraints
+      .get(constraintClassMetadata.name)
+      .push(
+        createCypherConstraint(
+          name,
+          constraintPropertyMetadata.options?.ifNotExists,
+          constraintClassMetadata.isRel,
+          constraintClassMetadata.name,
+          [constraintPropertyMetadata.property].concat(
+            constraintPropertyMetadata.options?.additionalKeys
+              ? constraintPropertyMetadata.options?.additionalKeys
+              : [],
+          ),
+          constraintPropertyMetadata.constraintType,
+        ),
+      );
   }
 
   addConstraintPropertyMetadata(metadata: ConstraintPropertyMetadata) {
     this._constraintMetadata.push(metadata);
   }
 
-  addConstraintClassMetadata(metadata: ConstraintClassMetadata) {
+  addConstraintClassMetadata(constraintClassMetadata: ConstraintClassMetadata) {
     const constraints = this._constraintMetadata.filter(
-      (c) => c.target === metadata.target,
+      (c) => c.target === constraintClassMetadata.target,
     );
 
     if (constraints.length > 0) {
-      if (!this._cypherConstraints.has(metadata.name)) {
-        this._cypherConstraints.set(metadata.name, []);
+      if (!this._cypherConstraints.has(constraintClassMetadata.name)) {
+        this._cypherConstraints.set(constraintClassMetadata.name, []);
       }
 
-      constraints.forEach((c) => {
-        let name: string;
-
-        if (c.options?.name) {
-          name = c.options.name;
-        } else if (c.options?.useCommonName) {
-          name = Neo4jMetadataStorageDef._generateCommonName(
-            metadata.name,
-            c.property,
-            c.constraintType,
+      constraints.forEach(
+        (constraintPropertyMetadata: ConstraintPropertyMetadata) => {
+          let name = Neo4jMetadataStorageDef._generateConstraintName(
+            constraintPropertyMetadata,
+            constraintClassMetadata,
           );
-        }
-
-        this._cypherConstraints
-          .get(metadata.name)
-          .push(
-            createCypherConstraint(
-              name,
-              c.options?.ifNotExists,
-              metadata.isRel,
-              metadata.name,
-              [c.property].concat(
-                c.options?.additionalKeys ? c.options?.additionalKeys : [],
-              ),
-              c.constraintType,
-            ),
+          this._addCypherConstraint(
+            name,
+            constraintClassMetadata,
+            constraintPropertyMetadata,
           );
-      });
+        },
+      );
     }
   }
 
