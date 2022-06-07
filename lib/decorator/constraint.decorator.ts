@@ -42,6 +42,7 @@ export type ConstraintOptions = {
   name?: string;
   ifNotExists?: boolean;
   additionalKeys?: string[];
+  useCommonName?: boolean;
 };
 
 export function Constraint(

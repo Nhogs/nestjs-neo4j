@@ -23,6 +23,26 @@ export class Neo4jMetadataStorageDef {
     string[]
   >();
 
+  private static _generateCommonName(
+    name: string,
+    property: string,
+    constraintType: string,
+  ): string {
+    let type: string;
+
+    if (constraintType === 'IS NODE KEY') {
+      type = 'key';
+    }
+    if (constraintType === 'IS UNIQUE') {
+      type = 'unique';
+    }
+    if (constraintType === 'IS NOT NULL') {
+      type = 'exists';
+    }
+
+    return `${name.toLowerCase()}_${property.toLowerCase()}_${type}`;
+  }
+
   addConstraintPropertyMetadata(metadata: ConstraintPropertyMetadata) {
     this._constraintMetadata.push(metadata);
   }
@@ -38,11 +58,23 @@ export class Neo4jMetadataStorageDef {
       }
 
       constraints.forEach((c) => {
+        let name: string;
+
+        if (c.options?.name) {
+          name = c.options.name;
+        } else if (c.options?.useCommonName) {
+          name = Neo4jMetadataStorageDef._generateCommonName(
+            metadata.name,
+            c.property,
+            c.constraintType,
+          );
+        }
+
         this._cypherConstraints
           .get(metadata.name)
           .push(
             createCypherConstraint(
-              c.options?.name,
+              name,
               c.options?.ifNotExists,
               metadata.isRel,
               metadata.name,
