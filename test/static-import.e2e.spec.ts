@@ -25,7 +25,7 @@ describe('Cats', () => {
     const constraints = neo4jService.getCypherConstraints();
     expect(constraints).toMatchInlineSnapshot(`
       Array [
-        "CREATE CONSTRAINT \`cat_name_unique\` IF NOT EXISTS FOR (p:\`Cat\`) REQUIRE p.\`name\` IS NODE KEY",
+        "CREATE CONSTRAINT \`cat_name_key\` IF NOT EXISTS FOR (p:\`Cat\`) REQUIRE p.\`name\` IS NODE KEY",
       ]
     `);
 
