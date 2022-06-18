@@ -1,24 +1,20 @@
 import { Injectable } from '@nestjs/common';
-import { Neo4jService } from '../../../lib';
+import { Neo4jModelService, Neo4jService } from '../../../lib';
 import { PersonDto } from './dto/person.dto';
 import { LikedDto } from './dto/liked.dto';
 
 @Injectable()
-export class PersonService {
-  constructor(private readonly neo4jService: Neo4jService) {}
+export class PersonService extends Neo4jModelService<PersonDto> {
+  constructor(private readonly neo4jService: Neo4jService) {
+    super();
+  }
 
-  async create(createPersonDto: PersonDto): Promise<PersonDto> {
-    await this.neo4jService.write(
-      `CREATE (p:\`Person\`{${Object.keys(createPersonDto)
-        .filter((k) => createPersonDto[k] != undefined)
-        .map((k) => `${k}:$${k}`)
-        .join(`, `)}})`,
-      {
-        ...createPersonDto,
-        age: this.neo4jService.int(createPersonDto.age),
-      },
-    );
-    return createPersonDto;
+  protected getLabel(): string {
+    return 'Person';
+  }
+
+  protected getNeo4jService(): Neo4jService {
+    return this.neo4jService;
   }
 
   async createLiked(
@@ -42,14 +38,7 @@ export class PersonService {
   }
 
   async findAll(): Promise<PersonDto[]> {
-    const results = await this.neo4jService.read(
-      'MATCH (p:`Person`) RETURN properties(p) as person ORDER BY person.name ',
-    );
-
-    return results.records.map((record) => {
-      const person = record.toObject().person;
-      return { ...person, age: this.neo4jService.int(person.age).toNumber() };
-    });
+    return super.findAll({ orderBy: 'name' });
   }
 
   async findLiked(name: string): Promise<[LikedDto, PersonDto][]> {

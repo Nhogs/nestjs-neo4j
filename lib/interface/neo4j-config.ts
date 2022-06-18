@@ -13,5 +13,6 @@ export interface Neo4jConfig {
   username: string;
   password: string;
   database?: string;
-  global?:boolean
+  global?: boolean;
+  disableLosslessIntegers?: boolean;
 }

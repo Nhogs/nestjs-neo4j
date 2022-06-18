@@ -1,5 +1,6 @@
 import { Logger } from '@nestjs/common';
 import { Neo4jService } from './neo4j.service';
+import { Session } from 'neo4j-driver';
 
 /**
  * Helper class to generate model service using Neo4j
@@ -7,16 +8,15 @@ import { Neo4jService } from './neo4j.service';
 export abstract class Neo4jModelService<T> {
   protected abstract getLabel(): string;
   protected abstract getNeo4jService(): Neo4jService;
-  protected abstract getLogger(): Logger;
 
   private async _run(
     cypher: string,
     params: Record<string, any>,
-    run: Function,
+    session: Session,
   ) {
     this.getLogger()?.debug({ cypher, params });
 
-    const results = (await run(cypher, params)).records.map((r) =>
+    const results = (await session.run(cypher, params)).records.map((r) =>
       r.toObject(),
     );
 
@@ -24,10 +24,10 @@ export abstract class Neo4jModelService<T> {
     return results;
   }
 
-  private _convertSkipLimit(params: { skip?: number; limit?: number }) {
+  private _convertSkipLimit(params?: { skip?: number; limit?: number }) {
     return {
-      skip: this.getNeo4jService().int(params.skip || 0),
-      limit: this.getNeo4jService().int(params.limit || 10),
+      skip: this.getNeo4jService().int(params?.skip || 0),
+      limit: this.getNeo4jService().int(params?.limit || 10),
     };
   }
 
@@ -38,12 +38,24 @@ export abstract class Neo4jModelService<T> {
     return undefined;
   }
 
+  protected getLogger(): Logger | undefined {
+    return undefined;
+  }
+
   protected async _write(cypher: string, params: Record<string, any>) {
-    return await this._run(cypher, params, this.getNeo4jService().write);
+    return await this._run(
+      cypher,
+      params,
+      this.getNeo4jService().getWriteSession(),
+    );
   }
 
   protected async _read(cypher: string, params: Record<string, any>) {
-    return await this._run(cypher, params, this.getNeo4jService().read);
+    return await this._run(
+      cypher,
+      params,
+      this.getNeo4jService().getReadSession(),
+    );
   }
 
   async runCypherConstraints(): Promise<string[]> {
@@ -109,7 +121,7 @@ export abstract class Neo4jModelService<T> {
     return res.map((r) => r.deleted) as T[];
   }
 
-  async findAll(params: {
+  async findAll(params?: {
     skip?: number;
     limit?: number;
     orderBy?: string;
@@ -119,9 +131,9 @@ export abstract class Neo4jModelService<T> {
 
     const res = await this._read(
       `MATCH (n:\`${this.getLabel()}\`) RETURN properties(n) AS matched${
-        params.orderBy
-          ? ` ORDER BY n.\`${params.orderBy}\`` +
-            (params.descending ? ' DESC' : '')
+        params?.orderBy
+          ? ` ORDER BY n.\`${params?.orderBy}\`` +
+            (params?.descending ? ' DESC' : '')
           : ''
       } SKIP $skip LIMIT $limit`,
       {

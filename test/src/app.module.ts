@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { Neo4jModule } from '../../lib';
-import { CatsModule } from "./cat/cats.module";
+import { CatsModule } from './cat/cats.module';
 
 @Module({
   imports: [
@@ -12,8 +12,9 @@ import { CatsModule } from "./cat/cats.module";
       username: 'neo4j',
       password: 'test',
       global: true,
+      disableLosslessIntegers: true,
     }),
-    CatsModule
+    CatsModule,
   ],
 })
 export class AppModule {}

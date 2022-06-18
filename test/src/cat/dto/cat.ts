@@ -10,4 +10,7 @@ export class Cat {
 
   @ConstraintNotNull()
   readonly breed: string;
+
+  @ConstraintNotNull()
+  readonly created: Date;
 }
