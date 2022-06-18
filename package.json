@@ -1,6 +1,6 @@
 {
   "name": "@nhogs/nestjs-neo4j",
-  "version": "0.0.11",
+  "version": "0.0.12",
   "engines": {
     "node": ">=16.x"
   },
@@ -53,7 +53,7 @@
   "peerDependencies": {
     "@nestjs/common": "^8.0.0",
     "@nestjs/core": "^8.0.0",
-    "neo4j-driver": "^4.4.5",
+    "neo4j-driver": "^4.4.6",
     "reflect-metadata": "^0.1.13",
     "rxjs": "^7.0.0"
   },
