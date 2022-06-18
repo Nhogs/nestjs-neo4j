@@ -30,22 +30,18 @@ export class Neo4jService implements OnApplicationShutdown {
     return this._getSession(neo4j.session.WRITE, database);
   }
 
-  read(
+  run(
     cypher: string,
-    params?: Record<string, any>,
-    database?: string,
+    options: {
+      params?: Record<string, any>;
+      database?: string;
+      write?: boolean;
+    },
   ): Result {
-    const session = this.getReadSession(database);
-    return session.run(cypher, params);
-  }
-
-  write(
-    cypher: string,
-    params?: Record<string, any>,
-    database?: string,
-  ): Result {
-    const session = this.getWriteSession(database);
-    return session.run(cypher, params);
+    const session = options.write
+      ? this.getWriteSession(options.database)
+      : this.getReadSession(options.database);
+    return session.run(cypher, options.params);
   }
 
   getCypherConstraints(label?: string): string[] {

@@ -22,16 +22,19 @@ export class PersonService extends Neo4jModelService<PersonDto> {
     from: string,
     to: string,
   ): Promise<LikedDto> {
-    await this.neo4jService.write(
+    await this.neo4jService.run(
       `MATCH (f:Person{name:$from}),(t:Person{name:$to}) MERGE (f)-[:LIKED{${Object.keys(
         createLikedDto,
       )
         .map((k) => `${k}:$${k}`)
         .join(`, `)}}]->(t)`,
       {
-        ...createLikedDto,
-        from,
-        to,
+        params: {
+          ...createLikedDto,
+          from,
+          to,
+        },
+        write: true,
       },
     );
     return createLikedDto;
@@ -42,9 +45,11 @@ export class PersonService extends Neo4jModelService<PersonDto> {
   }
 
   async findLiked(name: string): Promise<[LikedDto, PersonDto][]> {
-    const results = await this.neo4jService.read(
+    const results = await this.neo4jService.run(
       'MATCH (f:`Person`{name:$name})-[l:LIKED]->(t:Person) RETURN properties(l) AS liked, properties(t) AS person ORDER BY person.name ',
-      { name },
+      {
+        params: { name },
+      },
     );
 
     return results.records.map((record) => {

@@ -1,6 +1,5 @@
 import { Logger } from '@nestjs/common';
 import { Neo4jService } from './neo4j.service';
-import { Session } from 'neo4j-driver';
 
 /**
  * Helper class to generate model service using Neo4j
@@ -11,14 +10,16 @@ export abstract class Neo4jModelService<T> {
 
   private async _run(
     cypher: string,
-    params: Record<string, any>,
-    session: Session,
+    options: {
+      params?: Record<string, any>;
+      write?: boolean;
+    },
   ) {
-    this.getLogger()?.debug({ cypher, params });
+    this.getLogger()?.debug({ cypher, options });
 
-    const results = (await session.run(cypher, params)).records.map((r) =>
-      r.toObject(),
-    );
+    const results = (
+      await this.getNeo4jService().run(cypher, options)
+    ).records.map((r) => r.toObject());
 
     this.getLogger()?.debug(results);
     return results;
@@ -42,22 +43,6 @@ export abstract class Neo4jModelService<T> {
     return undefined;
   }
 
-  protected async _write(cypher: string, params: Record<string, any>) {
-    return await this._run(
-      cypher,
-      params,
-      this.getNeo4jService().getWriteSession(),
-    );
-  }
-
-  protected async _read(cypher: string, params: Record<string, any>) {
-    return await this._run(
-      cypher,
-      params,
-      this.getNeo4jService().getReadSession(),
-    );
-  }
-
   async runCypherConstraints(): Promise<string[]> {
     this.getLogger()?.debug('runCypherConstraints()');
     const queries = this.getNeo4jService().getCypherConstraints(
@@ -78,11 +63,11 @@ export abstract class Neo4jModelService<T> {
 
     const timestampProp = this.timestampProp();
 
-    const res = await this._write(
+    const res = await this._run(
       `CREATE (n:\`${this.getLabel()}\`) SET n=$props ${
         timestampProp ? `SET n.\`${timestampProp}\` = timestamp() ` : ''
       }RETURN properties(n) AS created`,
-      { props },
+      { params: { props }, write: true },
     );
 
     return res.length > 0 ? (res[0].created as T) : undefined;
@@ -93,7 +78,7 @@ export abstract class Neo4jModelService<T> {
 
     const timestampProp = this.timestampProp();
 
-    const res = await this._write(
+    const res = await this._run(
       `MERGE (n:\`${this.getLabel()}\`{${Object.keys(props).map(
         (k) => '`' + k + '`:$props.`' + k + '`',
       )}})${
@@ -101,8 +86,7 @@ export abstract class Neo4jModelService<T> {
           ? ` ON CREATE SET n.\`${timestampProp}\` = timestamp()`
           : ''
       } RETURN properties(n) AS merged`,
-
-      { props },
+      { params: { props }, write: true },
     );
 
     return res.length > 0 ? (res[0].merged as T) : undefined;
@@ -111,11 +95,11 @@ export abstract class Neo4jModelService<T> {
   async delete(props: Record<string, any>): Promise<T[]> {
     this.getLogger()?.debug('delete(' + JSON.stringify(props) + ')');
 
-    const res = await this._write(
+    const res = await this._run(
       `MATCH (n:\`${this.getLabel()}\`{${Object.keys(props).map(
         (k) => '`' + k + '`:' + JSON.stringify(props[k]),
       )}}) WITH n, properties(n) AS deleted DELETE n RETURN deleted`,
-      { props },
+      { params: { props }, write: true },
     );
 
     return res.map((r) => r.deleted) as T[];
@@ -129,7 +113,7 @@ export abstract class Neo4jModelService<T> {
   }): Promise<T[]> {
     this.getLogger()?.debug('findAll(' + JSON.stringify(params) + ')');
 
-    const res = await this._read(
+    const res = await this._run(
       `MATCH (n:\`${this.getLabel()}\`) RETURN properties(n) AS matched${
         params?.orderBy
           ? ` ORDER BY n.\`${params?.orderBy}\`` +
@@ -137,7 +121,7 @@ export abstract class Neo4jModelService<T> {
           : ''
       } SKIP $skip LIMIT $limit`,
       {
-        ...this._convertSkipLimit(params),
+        params: { ...this._convertSkipLimit(params) },
       },
     );
 
@@ -153,7 +137,7 @@ export abstract class Neo4jModelService<T> {
   }): Promise<T[]> {
     this.getLogger()?.debug('findBy(' + JSON.stringify(params) + ')');
 
-    const res = await this._read(
+    const res = await this._run(
       `MATCH (n:\`${this.getLabel()}\`{${Object.keys(params.props).map(
         (k) => '`' + k + '`:' + JSON.stringify(params.props[k]),
       )}}) RETURN properties(n) AS matched${
@@ -163,7 +147,7 @@ export abstract class Neo4jModelService<T> {
           : ''
       } SKIP $skip LIMIT $limit`,
       {
-        ...this._convertSkipLimit(params),
+        params: { ...this._convertSkipLimit(params) },
       },
     );
     return res.map((r) => r.matched as T);
@@ -177,7 +161,7 @@ export abstract class Neo4jModelService<T> {
   }): Promise<[T, number][]> {
     this.getLogger()?.debug('findBy(' + JSON.stringify(params) + ')');
 
-    const res = await this._read(
+    const res = await this._run(
       `MATCH (n:\`${this.getLabel()}\`) WITH n, split(n.\`${
         params.prop
       }\`, ' ') as words
@@ -187,8 +171,10 @@ export abstract class Neo4jModelService<T> {
     ELSE reduce(s = 0, st IN $terms | s + reduce(s2 = 0, w IN words | CASE WHEN (w = st) THEN (s2 + 4) ELSE CASE WHEN (w CONTAINS st) THEN (s2 +2) ELSE (s2) END END)) END AS score 
     ORDER BY score DESC SKIP $skip LIMIT $limit RETURN properties(n) as matched, score`,
       {
-        terms: params.terms,
-        ...this._convertSkipLimit(params),
+        params: {
+          terms: params.terms,
+          ...this._convertSkipLimit(params),
+        },
       },
     );
 

@@ -36,6 +36,7 @@ $ npm i --save @nhogs/nestjs-neo4j
       username: 'neo4j',
       password: 'test',
       global: true,
+      disableLosslessIntegers: true,
     }),
     CatsModule,
   ],
@@ -70,24 +71,19 @@ export class AppModule {}
 export class AppAsyncModule {}
 ```
 
-### Write query:
+### Run cypher query:
 
 ```typescript
-await this.neo4jService.write(
+await await this.neo4jService.run(
   'CREATE (c:`Cat`{name:$name, age:$age, breed:$breed})',
   {
-    name: cat.name,
-    age: this.neo4jService.int(cat.age),
-    breed: cat.breed,
+    params: {
+      name: cat.name,
+      age: this.neo4jService.int(cat.age),
+      breed: cat.breed,
+    },
+    write: true,
   },
-);
-```
-
-### Read query:
-
-```typescript
-const results = await this.neo4jService.read(
-  'MATCH (c:`Cat`) RETURN properties(c) as cat',
 );
 ```
 
@@ -129,6 +125,55 @@ CREATE CONSTRAINT `person_node_key` IF NOT EXISTS FOR (p:`Person`) REQUIRE (p.`n
 CREATE CONSTRAINT IF NOT EXISTS FOR (p:`Person`) REQUIRE p.`firstname` IS NOT NULL;
 CREATE CONSTRAINT `surname_is_unique` IF NOT EXISTS FOR (p:`Person`) REQUIRE p.`surname` IS UNIQUE;
 CREATE CONSTRAINT `person_name_exists` IF NOT EXISTS FOR (p:`Person`) REQUIRE p.`age` IS NOT NULL;
+```
+
+### Extends Neo4jModelService to get CRUD methods:
+
+```typescript
+@Injectable()
+export class CatsService extends Neo4jModelService<Cat> {
+  constructor(private readonly neo4jService: Neo4jService) {
+    super();
+  }
+
+  protected getLabel(): string {
+    return 'Cat';
+  }
+
+  protected getNeo4jService(): Neo4jService {
+    return this.neo4jService;
+  }
+
+  protected timestampProp(): string | undefined {
+    return 'created';
+  }
+
+  async findByName(params: {
+    name: string;
+    skip?: number;
+    limit?: number;
+    orderBy?: string;
+    descending?: boolean;
+  }): Promise<Cat[]> {
+    return super.findBy({
+      props: { name: params.name },
+      ...params,
+    });
+  }
+
+  async searchByName(params: {
+    search: string;
+    skip?: number;
+    limit?: number;
+  }): Promise<[Cat, number][]> {
+    return super.searchBy({
+      prop: 'name',
+      terms: params.search.split(' '),
+      skip: params.skip,
+      limit: params.limit,
+    });
+  }
+}
 ```
 
 ## License

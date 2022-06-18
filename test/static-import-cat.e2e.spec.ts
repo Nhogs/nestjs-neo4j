@@ -1,8 +1,8 @@
-import { Test } from "@nestjs/testing";
-import { INestApplication } from "@nestjs/common";
-import { AppModule } from "./src/app.module";
-import { Neo4jService } from "../lib";
-import { CatsService } from "./src/cat/cats.service";
+import { Test } from '@nestjs/testing';
+import { INestApplication } from '@nestjs/common';
+import { AppModule } from './src/app.module';
+import { Neo4jService } from '../lib';
+import { CatsService } from './src/cat/cats.service';
 
 describe('Cats', () => {
   let app: INestApplication;
@@ -20,7 +20,9 @@ describe('Cats', () => {
   });
 
   afterEach(async () => {
-    await neo4jService.write('MATCH (n) DETACH DELETE n');
+    await neo4jService.run('MATCH (n) DETACH DELETE n', {
+      write: true,
+    });
   });
 
   it(`should runCypherConstraints`, async () => {
@@ -163,8 +165,72 @@ describe('Cats', () => {
       ]
     `,
     );
+
     return expect(await catsService.findAll()).toMatchInlineSnapshot(
       `Array []`,
+    );
+  });
+
+  it(`should findByName`, async () => {
+    await catsService.create({
+      name: 'Gypsy',
+      age: 5,
+      breed: 'Maine Coon',
+    });
+
+    return expect(
+      await catsService.findByName({ name: 'Gypsy' }),
+    ).toMatchInlineSnapshot(
+      [
+        {
+          created: expect.any(Number),
+        },
+      ],
+      `
+              Array [
+                Object {
+                  "age": 5,
+                  "breed": "Maine Coon",
+                  "created": Any<Number>,
+                  "name": "Gypsy",
+                },
+              ]
+            `,
+    );
+  });
+
+  it(`should searchByName`, async () => {
+    await catsService.create({
+      name: 'Gypsy',
+      age: 5,
+      breed: 'Maine Coon',
+    });
+
+    return expect(
+      await catsService.searchByName({ search: 'psy' }),
+    ).toMatchInlineSnapshot(
+      [
+        [
+          {
+            created: expect.any(Number),
+          },
+
+          expect.any(Number),
+        ],
+      ],
+      `
+              Array [
+                Array [
+                  Object {
+                    "age": 5,
+                    "breed": "Maine Coon",
+                    "created": Any<Number>,
+                    "name": "Gypsy",
+                  },
+                  Any<Number>,
+                ],
+              ]
+            `,
     );
   });
 

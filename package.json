@@ -1,6 +1,6 @@
 {
   "name": "@nhogs/nestjs-neo4j",
-  "version": "0.0.12",
+  "version": "0.1.0",
   "engines": {
     "node": ">=16.x"
   },
