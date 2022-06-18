@@ -9,6 +9,28 @@ export abstract class Neo4jModelService<T> {
   protected abstract getNeo4jService(): Neo4jService;
   protected abstract getLogger(): Logger;
 
+  private async _run(
+    cypher: string,
+    params: Record<string, any>,
+    run: Function,
+  ) {
+    this.getLogger()?.debug({ cypher, params });
+
+    const results = (await run(cypher, params)).records.map((r) =>
+      r.toObject(),
+    );
+
+    this.getLogger()?.debug(results);
+    return results;
+  }
+
+  private _convertSkipLimit(params: { skip?: number; limit?: number }) {
+    return {
+      skip: this.getNeo4jService().int(params.skip || 0),
+      limit: this.getNeo4jService().int(params.limit || 10),
+    };
+  }
+
   /**
    * Overide this with property name to generate timestamp on object creation
    */
@@ -17,25 +39,11 @@ export abstract class Neo4jModelService<T> {
   }
 
   protected async _write(cypher: string, params: Record<string, any>) {
-    this.getLogger()?.debug({ cypher, params });
-
-    const results = (
-      await this.getNeo4jService().write(cypher, params)
-    ).records.map((r) => r.toObject());
-
-    this.getLogger()?.debug(results);
-    return results;
+    return await this._run(cypher, params, this.getNeo4jService().write);
   }
 
   protected async _read(cypher: string, params: Record<string, any>) {
-    this.getLogger()?.debug({ cypher, params });
-
-    const results = (
-      await this.getNeo4jService().read(cypher, params)
-    ).records.map((r) => r.toObject());
-
-    this.getLogger()?.debug(results);
-    return results;
+    return await this._run(cypher, params, this.getNeo4jService().read);
   }
 
   async runCypherConstraints(): Promise<string[]> {
@@ -117,8 +125,7 @@ export abstract class Neo4jModelService<T> {
           : ''
       } SKIP $skip LIMIT $limit`,
       {
-        skip: this.getNeo4jService().int(params.skip || 0),
-        limit: this.getNeo4jService().int(params.limit || 10),
+        ...this._convertSkipLimit(params),
       },
     );
 
@@ -144,8 +151,7 @@ export abstract class Neo4jModelService<T> {
           : ''
       } SKIP $skip LIMIT $limit`,
       {
-        skip: this.getNeo4jService().int(params.skip || 0),
-        limit: this.getNeo4jService().int(params.limit || 10),
+        ...this._convertSkipLimit(params),
       },
     );
     return res.map((r) => r.matched as T);
@@ -170,8 +176,7 @@ export abstract class Neo4jModelService<T> {
     ORDER BY score DESC SKIP $skip LIMIT $limit RETURN properties(n) as matched, score`,
       {
         terms: params.terms,
-        skip: this.getNeo4jService().int(params.skip || 0),
-        limit: this.getNeo4jService().int(params.limit || 10),
+        ...this._convertSkipLimit(params),
       },
     );
 
