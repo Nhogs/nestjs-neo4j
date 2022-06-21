@@ -7,6 +7,9 @@ import { LikedDto } from './dto/liked.dto';
 export class PersonService extends Neo4jModelService<PersonDto> {
   constructor(protected readonly neo4jService: Neo4jService) {
     super();
+    this.logger.debug = (m) => {
+      console.log(m);
+    };
   }
 
   protected label = 'Person';

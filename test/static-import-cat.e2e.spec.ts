@@ -19,7 +19,7 @@ describe('Cats', () => {
     catsService = app.get<CatsService>(CatsService);
   });
 
-  afterEach(async () => {
+  beforeEach(async () => {
     await neo4jService.run('MATCH (n) DETACH DELETE n', {
       sessionOptions: { write: true },
     });
@@ -55,7 +55,8 @@ describe('Cats', () => {
         "created": Any<Integer>,
         "name": "Gypsy",
       }
-    `);
+    `,
+    );
 
     return expect(await catsService.findAll()).toMatchInlineSnapshot(
       [
@@ -64,15 +65,15 @@ describe('Cats', () => {
         },
       ],
       `
-              Array [
-                Object {
-                  "age": 5,
-                  "breed": "Maine Coon",
-                  "created": Any<Integer>,
-                  "name": "Gypsy",
-                },
-              ]
-            `,
+        Array [
+          Object {
+            "age": 5,
+            "breed": "Maine Coon",
+            "created": Any<Integer>,
+            "name": "Gypsy",
+          },
+        ]
+      `,
     );
   });
 
@@ -124,15 +125,15 @@ describe('Cats', () => {
         },
       ],
       `
-              Array [
-                Object {
-                  "age": 5,
-                  "breed": "Maine Coon",
-                  "created": Any<Integer>,
-                  "name": "Gypsy",
-                },
-              ]
-            `,
+        Array [
+          Object {
+            "age": 5,
+            "breed": "Maine Coon",
+            "created": Any<Integer>,
+            "name": "Gypsy",
+          },
+        ]
+      `,
     );
   });
 
@@ -186,15 +187,15 @@ describe('Cats', () => {
         },
       ],
       `
-              Array [
-                Object {
-                  "age": 5,
-                  "breed": "Maine Coon",
-                  "created": Any<Integer>,
-                  "name": "Gypsy",
-                },
-              ]
-            `,
+        Array [
+          Object {
+            "age": 5,
+            "breed": "Maine Coon",
+            "created": Any<Integer>,
+            "name": "Gypsy",
+          },
+        ]
+      `,
     );
   });
 
@@ -211,18 +212,18 @@ describe('Cats', () => {
         t[1],
       ]),
     ).toMatchInlineSnapshot(`
-              Array [
-                Array [
-                  Object {
-                    "age": 5,
-                    "breed": "Maine Coon",
-                    "created": "x",
-                    "name": "Gypsy",
-                  },
-                  2,
-                ],
-              ]
-            `);
+      Array [
+        Array [
+          Object {
+            "age": 5,
+            "breed": "Maine Coon",
+            "created": "x",
+            "name": "Gypsy",
+          },
+          2,
+        ],
+      ]
+    `);
   });
 
   afterAll(async () => {

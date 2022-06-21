@@ -1,12 +1,12 @@
 import neo4j, {
   Driver,
-  RxSession,
-  Session,
   Result,
   RxResult,
-  Transaction,
+  RxSession,
   RxTransaction,
   ServerInfo,
+  Session,
+  Transaction,
 } from 'neo4j-driver';
 import { Inject, Injectable, OnApplicationShutdown } from '@nestjs/common';
 import { NEO4J_CONFIG, NEO4J_DRIVER } from '../constant';
@@ -64,12 +64,12 @@ export class Neo4jService implements OnApplicationShutdown {
    */
   run(
     cypher: string,
-    options: {
+    options?: {
       params?: Record<string, any>;
       sessionOptions?: SessionOptions;
     },
   ): Result {
-    const { params, sessionOptions } = options;
+    const { params, sessionOptions } = options || {};
     return this.getSession(sessionOptions).run(cypher, params);
   }
 
@@ -78,12 +78,12 @@ export class Neo4jService implements OnApplicationShutdown {
    */
   rxRun(
     cypher: string,
-    options: {
+    options?: {
       params?: Record<string, any>;
       sessionOptions?: SessionOptions;
     },
   ): RxResult {
-    const { params, sessionOptions } = options;
+    const { params, sessionOptions } = options || {};
     return this.getRxSession(sessionOptions).run(cypher, params);
   }
 
@@ -100,11 +100,11 @@ export class Neo4jService implements OnApplicationShutdown {
 }
 
 export {
-  ServerInfo,
-  Session,
-  RxSession,
   Result,
   RxResult,
-  Transaction,
+  RxSession,
   RxTransaction,
+  ServerInfo,
+  Session,
+  Transaction,
 };

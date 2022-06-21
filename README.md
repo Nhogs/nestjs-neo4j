@@ -70,20 +70,49 @@ export class AppModule {}
 export class AppAsyncModule {}
 ```
 
-### Run cypher query:
+### Use in service:
 
 ```typescript
-await await this.neo4jService.run(
-  'CREATE (c:`Cat`{name:$name, age:$age, breed:$breed})',
-  {
-    params: {
-      name: cat.name,
-      age: this.neo4jService.int(cat.age),
-      breed: cat.breed,
+@Injectable()
+export class CatService {
+  constructor(private readonly neo4jService: Neo4jService) {}
+
+  async create(cat: Cat): Promise<Cat> {
+    const result = await this.neo4jService.run(
+      'CREATE (c:`Cat`) SET c=$props RETURN properties(c) AS cat',
+      {
+        params: {
+          props: cat,
+        },
+        sessionOptions: { write: true },
+      },
+    );
+
+    return result.records[0].toObject().cat;
+  }
+
+  async findAll(): Promise<Cat[]> {
+    return (
+      await this.neo4jService.run('MATCH (c:`Cat`) RETURN properties(c) AS cat')
+    ).records.map((record) => record.toObject().cat);
+  }
+}
+```
+
+### Run with reactive session
+
+```typescript
+neo4jService
+  .rxRun('MATCH (n) RETURN count(n) AS count')
+  .records()
+  .subscribe({
+    next: (record) => {
+      console.log(record.get('count'));
     },
-    write: true,
-  },
-);
+    complete: () => {
+      done();
+    },
+  });
 ```
 
 ### Define constraints with decorators:
@@ -128,24 +157,28 @@ CREATE CONSTRAINT `person_name_exists` IF NOT EXISTS FOR (p:`Person`) REQUIRE p.
 
 ### Extends Neo4jModelService to get CRUD methods:
 
+- `runCypherConstraints`
+- `create`
+- `merge`
+- `delete`
+- `findAll`
+- `findBy`
+- `searchBy`
+
 ```typescript
+/**
+ * Cat Service example
+ */
+
 @Injectable()
 export class CatsService extends Neo4jModelService<Cat> {
-  constructor(private readonly neo4jService: Neo4jService) {
+  constructor(protected readonly neo4jService: Neo4jService) {
     super();
   }
 
-  protected getLabel(): string {
-    return 'Cat';
-  }
-
-  protected getNeo4jService(): Neo4jService {
-    return this.neo4jService;
-  }
-
-  protected timestampProp(): string | undefined {
-    return 'created';
-  }
+  protected label = 'Cat';
+  protected logger = undefined;
+  protected timestamp = 'created';
 
   async findByName(params: {
     name: string;

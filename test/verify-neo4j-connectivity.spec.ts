@@ -34,6 +34,25 @@ describe('Verify Neo4j Connectivity', () => {
     `);
   });
 
+  it('should rxRun', (done) => {
+    neo4jService
+      .rxRun('MATCH (n) RETURN count(n) AS count')
+      .records()
+      .subscribe({
+        next: (record) => {
+          expect(record.get('count')).toMatchInlineSnapshot(`
+          Integer {
+            "high": 0,
+            "low": 2,
+          }
+          `);
+        },
+        complete: () => {
+          done();
+        },
+      });
+  });
+
   afterAll(async () => {
     return await app.close();
   });

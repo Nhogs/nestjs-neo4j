@@ -19,7 +19,7 @@ describe('Persons', () => {
     neo4jService = app.get<Neo4jService>(Neo4jService);
   });
 
-  afterEach(async () => {
+  beforeEach(async () => {
     await neo4jService.run('MATCH (n) DETACH DELETE n', {
       sessionOptions: { write: true },
     });
