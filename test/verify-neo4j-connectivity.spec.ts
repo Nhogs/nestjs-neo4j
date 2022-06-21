@@ -25,6 +25,12 @@ describe('Verify Neo4j Connectivity', () => {
     neo4jService = app.get<Neo4jService>(Neo4jService);
   });
 
+  beforeEach(async () => {
+    await neo4jService.run('MATCH (n) DETACH DELETE n', {
+      sessionOptions: { write: true },
+    });
+  });
+
   it('should verify connectivity', async () => {
     expect(await neo4jService.verifyConnectivity()).toMatchInlineSnapshot(`
       Object {
@@ -43,7 +49,7 @@ describe('Verify Neo4j Connectivity', () => {
           expect(record.get('count')).toMatchInlineSnapshot(`
           Integer {
             "high": 0,
-            "low": 2,
+            "low": 0,
           }
           `);
         },
