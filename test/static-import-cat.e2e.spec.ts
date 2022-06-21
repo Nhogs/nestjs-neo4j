@@ -1,7 +1,7 @@
 import { Test } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import { AppModule } from './src/app.module';
-import { Neo4jService } from '../lib';
+import { Integer, Neo4jService } from '../lib';
 import { CatsService } from './src/cat/cats.service';
 
 describe('Cats', () => {
@@ -21,7 +21,7 @@ describe('Cats', () => {
 
   afterEach(async () => {
     await neo4jService.run('MATCH (n) DETACH DELETE n', {
-      write: true,
+      sessionOptions: { write: true },
     });
   });
 
@@ -46,22 +46,21 @@ describe('Cats', () => {
       }),
     ).toMatchInlineSnapshot(
       {
-        created: expect.any(Number),
+        created: expect.any(Integer),
       },
       `
       Object {
         "age": 5,
         "breed": "Maine Coon",
-        "created": Any<Number>,
+        "created": Any<Integer>,
         "name": "Gypsy",
       }
-    `,
-    );
+    `);
 
     return expect(await catsService.findAll()).toMatchInlineSnapshot(
       [
         {
-          created: expect.any(Number),
+          created: expect.any(Integer),
         },
       ],
       `
@@ -69,7 +68,7 @@ describe('Cats', () => {
                 Object {
                   "age": 5,
                   "breed": "Maine Coon",
-                  "created": Any<Number>,
+                  "created": Any<Integer>,
                   "name": "Gypsy",
                 },
               ]
@@ -86,13 +85,13 @@ describe('Cats', () => {
       }),
     ).toMatchInlineSnapshot(
       {
-        created: expect.any(Number),
+        created: expect.any(Integer),
       },
       `
       Object {
         "age": 5,
         "breed": "Maine Coon",
-        "created": Any<Number>,
+        "created": Any<Integer>,
         "name": "Gypsy",
       }
     `,
@@ -106,13 +105,13 @@ describe('Cats', () => {
       }),
     ).toMatchInlineSnapshot(
       {
-        created: expect.any(Number),
+        created: expect.any(Integer),
       },
       `
       Object {
         "age": 5,
         "breed": "Maine Coon",
-        "created": Any<Number>,
+        "created": Any<Integer>,
         "name": "Gypsy",
       }
     `,
@@ -121,7 +120,7 @@ describe('Cats', () => {
     return expect(await catsService.findAll()).toMatchInlineSnapshot(
       [
         {
-          created: expect.any(Number),
+          created: expect.any(Integer),
         },
       ],
       `
@@ -129,7 +128,7 @@ describe('Cats', () => {
                 Object {
                   "age": 5,
                   "breed": "Maine Coon",
-                  "created": Any<Number>,
+                  "created": Any<Integer>,
                   "name": "Gypsy",
                 },
               ]
@@ -151,7 +150,7 @@ describe('Cats', () => {
     ).toMatchInlineSnapshot(
       [
         {
-          created: expect.any(Number),
+          created: expect.any(Integer),
         },
       ],
       `
@@ -159,7 +158,7 @@ describe('Cats', () => {
         Object {
           "age": 5,
           "breed": "Maine Coon",
-          "created": Any<Number>,
+          "created": Any<Integer>,
           "name": "Gypsy",
         },
       ]
@@ -183,7 +182,7 @@ describe('Cats', () => {
     ).toMatchInlineSnapshot(
       [
         {
-          created: expect.any(Number),
+          created: expect.any(Integer),
         },
       ],
       `
@@ -191,7 +190,7 @@ describe('Cats', () => {
                 Object {
                   "age": 5,
                   "breed": "Maine Coon",
-                  "created": Any<Number>,
+                  "created": Any<Integer>,
                   "name": "Gypsy",
                 },
               ]
@@ -207,31 +206,23 @@ describe('Cats', () => {
     });
 
     return expect(
-      await catsService.searchByName({ search: 'psy' }),
-    ).toMatchInlineSnapshot(
-      [
-        [
-          {
-            created: expect.any(Number),
-          },
-
-          expect.any(Number),
-        ],
-      ],
-      `
+      (await catsService.searchByName({ search: 'psy' })).map((t) => [
+        { ...t[0], created: 'x' },
+        t[1],
+      ]),
+    ).toMatchInlineSnapshot(`
               Array [
                 Array [
                   Object {
                     "age": 5,
                     "breed": "Maine Coon",
-                    "created": Any<Number>,
+                    "created": "x",
                     "name": "Gypsy",
                   },
-                  Any<Number>,
+                  2,
                 ],
               ]
-            `,
-    );
+            `);
   });
 
   afterAll(async () => {

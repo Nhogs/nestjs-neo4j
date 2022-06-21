@@ -1,21 +1,17 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { Neo4jModelService, Neo4jService } from '../../../lib';
 import { PersonDto } from './dto/person.dto';
 import { LikedDto } from './dto/liked.dto';
 
 @Injectable()
 export class PersonService extends Neo4jModelService<PersonDto> {
-  constructor(private readonly neo4jService: Neo4jService) {
+  constructor(protected readonly neo4jService: Neo4jService) {
     super();
   }
 
-  protected getLabel(): string {
-    return 'Person';
-  }
-
-  protected getNeo4jService(): Neo4jService {
-    return this.neo4jService;
-  }
+  protected label = 'Person';
+  protected timestamp = undefined;
+  protected logger = new Logger(PersonService.name);
 
   async createLiked(
     createLikedDto: LikedDto,
@@ -34,7 +30,7 @@ export class PersonService extends Neo4jModelService<PersonDto> {
           from,
           to,
         },
-        write: true,
+        sessionOptions: { write: true },
       },
     );
     return createLikedDto;
@@ -55,10 +51,7 @@ export class PersonService extends Neo4jModelService<PersonDto> {
     return results.records.map((record) => {
       const person = record.toObject().person;
       const liked = record.toObject().liked;
-      return [
-        liked,
-        { ...person, age: this.neo4jService.int(person.age).toNumber() },
-      ];
+      return [liked, person];
     });
   }
 }

@@ -105,5 +105,6 @@ dist
 
 # IntelliJ project files
 .idea
+.run
 .dist
 .neo4j

@@ -6,6 +6,7 @@ import { PersonModule } from './person/person.module';
 @Module({
   imports: [
     Neo4jModule.forRootAsync({
+      global:true,
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (configService: ConfigService): Neo4jConfig => ({
@@ -16,7 +17,6 @@ import { PersonModule } from './person/person.module';
         password: configService.get('NEO4J_PASSWORD'),
         database: configService.get('NEO4J_DATABASE'),
       }),
-      global: true,
     }),
     PersonModule,
     ConfigModule.forRoot({

@@ -1,49 +1,95 @@
-import neo4j, { Driver, int, Result, SessionMode } from 'neo4j-driver';
+import neo4j, {
+  Driver,
+  RxSession,
+  Session,
+  Result,
+  RxResult,
+  Transaction,
+  RxTransaction,
+  ServerInfo,
+} from 'neo4j-driver';
 import { Inject, Injectable, OnApplicationShutdown } from '@nestjs/common';
 import { NEO4J_CONFIG, NEO4J_DRIVER } from '../constant';
-import { Neo4jConfig } from '../interface';
+import { Neo4jConfig, SessionOptions } from '../interface';
 import { Neo4jMetadataStorage } from '../storage';
 
 @Injectable()
+/**
+ * See https://neo4j.com/docs/api/javascript-driver/current/ for details
+ */
 export class Neo4jService implements OnApplicationShutdown {
   constructor(
     @Inject(NEO4J_CONFIG) private readonly config: Neo4jConfig,
     @Inject(NEO4J_DRIVER) private readonly driver: Driver,
   ) {}
 
-  private _getSession(sessionMode: SessionMode, database?: string) {
-    return this.driver.session({
-      database: database || this.config.database,
-      defaultAccessMode: sessionMode,
-    });
+  private _convertSessionOptions(options: SessionOptions) {
+    return {
+      database: options?.database || this.config.database,
+      defaultAccessMode: options?.write
+        ? neo4j.session.WRITE
+        : neo4j.session.READ,
+    };
   }
 
-  int(value: number) {
-    return int(value);
+  /**
+   * Verifies connectivity of this driver by trying to open a connection with the provided driver options.
+   */
+  verifyConnectivity(options?: { database?: string }): Promise<ServerInfo> {
+    return this.driver.verifyConnectivity(options);
   }
 
-  getReadSession(database?: string) {
-    return this._getSession(neo4j.session.READ, database);
+  /**
+   * Regular Session.
+   * Create a session to run Cypher statements in.
+   *
+   * Note: Always make sure to close sessions when you are done using them!
+   */
+  getSession(options?: SessionOptions): Session {
+    return this.driver.session(this._convertSessionOptions(options));
   }
 
-  getWriteSession(database?: string) {
-    return this._getSession(neo4j.session.WRITE, database);
+  /**
+   * Reactive session.
+   * Create a reactive session to run Cypher statements in.
+   *
+   * Note: Always make sure to close sessions when you are done using them!
+   */
+  getRxSession(options?: SessionOptions): RxSession {
+    return this.driver.rxSession(this._convertSessionOptions(options));
   }
 
+  /**
+   * Run Cypher query in regular session.
+   */
   run(
     cypher: string,
     options: {
       params?: Record<string, any>;
-      database?: string;
-      write?: boolean;
+      sessionOptions?: SessionOptions;
     },
   ): Result {
-    const session = options.write
-      ? this.getWriteSession(options.database)
-      : this.getReadSession(options.database);
-    return session.run(cypher, options.params);
+    const { params, sessionOptions } = options;
+    return this.getSession(sessionOptions).run(cypher, params);
   }
 
+  /**
+   * Run Cypher query in reactive session.
+   */
+  rxRun(
+    cypher: string,
+    options: {
+      params?: Record<string, any>;
+      sessionOptions?: SessionOptions;
+    },
+  ): RxResult {
+    const { params, sessionOptions } = options;
+    return this.getRxSession(sessionOptions).run(cypher, params);
+  }
+
+  /**
+   * Returns constraints as runnable Cypher queries defined with decorators on models.
+   */
   getCypherConstraints(label?: string): string[] {
     return Neo4jMetadataStorage.getCypherConstraints(label);
   }
@@ -52,3 +98,13 @@ export class Neo4jService implements OnApplicationShutdown {
     return this.driver.close();
   }
 }
+
+export {
+  ServerInfo,
+  Session,
+  RxSession,
+  Result,
+  RxResult,
+  Transaction,
+  RxTransaction,
+};

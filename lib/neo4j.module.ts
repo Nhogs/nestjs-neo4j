@@ -6,10 +6,13 @@ import { NEO4J_CONFIG, NEO4J_DRIVER } from './constant';
 import { Neo4jService } from './service';
 
 export const createDriver = async (config: Neo4jConfig) => {
+  const { scheme, host, port, username, password, database, ...driverConfig } =
+    config;
+
   const driver: Driver = neo4j.driver(
-    `${config.scheme}://${config.host}:${config.port}`,
-    neo4j.auth.basic(config.username, config.password),
-    { disableLosslessIntegers: true }
+    `${scheme}://${host}:${port}`,
+    neo4j.auth.basic(username, password),
+    driverConfig,
   );
 
   await driver.verifyConnectivity();
@@ -42,14 +45,14 @@ export class Neo4jModule {
   static forRootAsync(configProvider): DynamicModule {
     return {
       module: Neo4jModule,
-      global: true,
+      global: configProvider.global,
       imports: [ConfigModule],
 
       providers: [
         {
           provide: NEO4J_CONFIG,
           ...configProvider,
-        } as Provider<any>,
+        } as Provider,
         {
           provide: NEO4J_DRIVER,
           inject: [NEO4J_CONFIG],

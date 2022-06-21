@@ -1,3 +1,5 @@
+import { Config } from 'neo4j-driver';
+
 export type Neo4jScheme =
   | 'neo4j'
   | 'neo4j+s'
@@ -6,7 +8,7 @@ export type Neo4jScheme =
   | 'bolt+s'
   | 'bolt+ssc';
 
-export interface Neo4jConfig {
+export interface ConnectionConfig {
   scheme: Neo4jScheme;
   host: string;
   port: number | string;
@@ -14,5 +16,6 @@ export interface Neo4jConfig {
   password: string;
   database?: string;
   global?: boolean;
-  disableLosslessIntegers?: boolean;
 }
+
+export type Neo4jConfig = ConnectionConfig & Config;

@@ -36,7 +36,6 @@ $ npm i --save @nhogs/nestjs-neo4j
       username: 'neo4j',
       password: 'test',
       global: true,
-      disableLosslessIntegers: true,
     }),
     CatsModule,
   ],
