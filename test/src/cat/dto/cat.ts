@@ -1,9 +1,4 @@
-import {
-  ConstraintKey,
-  ConstraintNotNull,
-  Integer,
-  Node,
-} from '../../../../lib';
+import { ConstraintKey, ConstraintNotNull, Node } from '../../../../lib';
 
 @Node()
 export class Cat {
@@ -17,5 +12,5 @@ export class Cat {
   readonly breed: string;
 
   @ConstraintNotNull()
-  readonly created: Integer;
+  readonly created: string;
 }

@@ -16,6 +16,14 @@ export abstract class Neo4jModelService<T> {
    */
   protected abstract readonly timestamp: string;
 
+  protected toNeo4j(t: Record<string, any>): Record<string, any> {
+    return { ...t };
+  }
+
+  protected fromNeo4j(model: Record<string, any>): T {
+    return { ...model } as T;
+  }
+
   private async _runWithDebug(
     cypher: string,
     options: {
@@ -35,8 +43,8 @@ export abstract class Neo4jModelService<T> {
 
   private static _convertSkipLimit(params?: { skip?: number; limit?: number }) {
     return {
-      skip: neo4j.types.Integer.fromInt(params?.skip || 0),
-      limit: neo4j.types.Integer.fromInt(params?.limit || 10),
+      skip: neo4j.int(params?.skip || 0),
+      limit: neo4j.int(params?.limit || 10),
     };
   }
 
@@ -60,10 +68,13 @@ export abstract class Neo4jModelService<T> {
       `CREATE (n:\`${this.label}\`) SET n=$props ${
         this.timestamp ? `SET n.\`${this.timestamp}\` = timestamp() ` : ''
       }RETURN properties(n) AS created`,
-      { params: { props }, sessionOptions: { write: true } },
+      {
+        params: { props: this.toNeo4j(props) },
+        sessionOptions: { write: true },
+      },
     );
 
-    return res.length > 0 ? (res[0].created as T) : undefined;
+    return res.length > 0 ? this.fromNeo4j(res[0].created) : undefined;
   }
 
   async merge(props: Record<string, any>): Promise<T> {
@@ -77,10 +88,13 @@ export abstract class Neo4jModelService<T> {
           ? ` ON CREATE SET n.\`${this.timestamp}\` = timestamp()`
           : ''
       } RETURN properties(n) AS merged`,
-      { params: { props }, sessionOptions: { write: true } },
+      {
+        params: { props: this.toNeo4j(props) },
+        sessionOptions: { write: true },
+      },
     );
 
-    return res.length > 0 ? (res[0].merged as T) : undefined;
+    return res.length > 0 ? this.fromNeo4j(res[0].merged) : undefined;
   }
 
   async delete(props: Record<string, any>): Promise<T[]> {
@@ -90,10 +104,13 @@ export abstract class Neo4jModelService<T> {
       `MATCH (n:\`${this.label}\`{${Object.keys(props).map(
         (k) => '`' + k + '`:' + JSON.stringify(props[k]),
       )}}) WITH n, properties(n) AS deleted DELETE n RETURN deleted`,
-      { params: { props }, sessionOptions: { write: true } },
+      {
+        params: { props: this.toNeo4j(props) },
+        sessionOptions: { write: true },
+      },
     );
 
-    return res.map((r) => r.deleted) as T[];
+    return res.map((r) => this.fromNeo4j(r.deleted));
   }
 
   async findAll(params?: {
@@ -116,7 +133,7 @@ export abstract class Neo4jModelService<T> {
       },
     );
 
-    return res.map((r) => r.matched as T);
+    return res.map((r) => this.fromNeo4j(r.matched));
   }
 
   async findBy(params: {
@@ -128,9 +145,11 @@ export abstract class Neo4jModelService<T> {
   }): Promise<T[]> {
     this.logger?.debug('findBy(' + JSON.stringify(params) + ')');
 
+    const props = this.toNeo4j(params.props);
+
     const res = await this._runWithDebug(
-      `MATCH (n:\`${this.label}\`{${Object.keys(params.props).map(
-        (k) => '`' + k + '`:' + JSON.stringify(params.props[k]),
+      `MATCH (n:\`${this.label}\`{${Object.keys(props).map(
+        (k) => '`' + k + '`:' + JSON.stringify(props[k]),
       )}}) RETURN properties(n) AS matched${
         params.orderBy
           ? ` ORDER BY n.\`${params.orderBy}\`` +
@@ -141,7 +160,7 @@ export abstract class Neo4jModelService<T> {
         params: { ...Neo4jModelService._convertSkipLimit(params) },
       },
     );
-    return res.map((r) => r.matched as T);
+    return res.map((r) => this.fromNeo4j(r.matched));
   }
 
   async searchBy(params: {
@@ -168,7 +187,7 @@ export abstract class Neo4jModelService<T> {
     );
 
     return res.map((r) => {
-      return [r.matched as T, r.score.toInt()];
+      return [this.fromNeo4j(r.matched), r.score.toInt()];
     });
   }
 }

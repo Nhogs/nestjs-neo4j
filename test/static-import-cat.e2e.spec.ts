@@ -1,7 +1,7 @@
 import { Test } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import { AppModule } from './src/app.module';
-import { Integer, Neo4jService } from '../lib';
+import { Neo4jService } from '../lib';
 import { CatsService } from './src/cat/cats.service';
 
 describe('Cats', () => {
@@ -46,13 +46,13 @@ describe('Cats', () => {
       }),
     ).toMatchInlineSnapshot(
       {
-        created: expect.any(Integer),
+        created: expect.any(String),
       },
       `
       Object {
         "age": 5,
         "breed": "Maine Coon",
-        "created": Any<Integer>,
+        "created": Any<String>,
         "name": "Gypsy",
       }
     `,
@@ -61,7 +61,7 @@ describe('Cats', () => {
     return expect(await catsService.findAll()).toMatchInlineSnapshot(
       [
         {
-          created: expect.any(Integer),
+          created: expect.any(String),
         },
       ],
       `
@@ -69,7 +69,7 @@ describe('Cats', () => {
           Object {
             "age": 5,
             "breed": "Maine Coon",
-            "created": Any<Integer>,
+            "created": Any<String>,
             "name": "Gypsy",
           },
         ]
@@ -86,13 +86,13 @@ describe('Cats', () => {
       }),
     ).toMatchInlineSnapshot(
       {
-        created: expect.any(Integer),
+        created: expect.any(String),
       },
       `
       Object {
         "age": 5,
         "breed": "Maine Coon",
-        "created": Any<Integer>,
+        "created": Any<String>,
         "name": "Gypsy",
       }
     `,
@@ -106,13 +106,13 @@ describe('Cats', () => {
       }),
     ).toMatchInlineSnapshot(
       {
-        created: expect.any(Integer),
+        created: expect.any(String),
       },
       `
       Object {
         "age": 5,
         "breed": "Maine Coon",
-        "created": Any<Integer>,
+        "created": Any<String>,
         "name": "Gypsy",
       }
     `,
@@ -121,7 +121,7 @@ describe('Cats', () => {
     return expect(await catsService.findAll()).toMatchInlineSnapshot(
       [
         {
-          created: expect.any(Integer),
+          created: expect.any(String),
         },
       ],
       `
@@ -129,7 +129,7 @@ describe('Cats', () => {
           Object {
             "age": 5,
             "breed": "Maine Coon",
-            "created": Any<Integer>,
+            "created": Any<String>,
             "name": "Gypsy",
           },
         ]
@@ -151,7 +151,7 @@ describe('Cats', () => {
     ).toMatchInlineSnapshot(
       [
         {
-          created: expect.any(Integer),
+          created: expect.any(String),
         },
       ],
       `
@@ -159,7 +159,7 @@ describe('Cats', () => {
         Object {
           "age": 5,
           "breed": "Maine Coon",
-          "created": Any<Integer>,
+          "created": Any<String>,
           "name": "Gypsy",
         },
       ]
@@ -183,7 +183,7 @@ describe('Cats', () => {
     ).toMatchInlineSnapshot(
       [
         {
-          created: expect.any(Integer),
+          created: expect.any(String),
         },
       ],
       `
@@ -191,7 +191,7 @@ describe('Cats', () => {
           Object {
             "age": 5,
             "breed": "Maine Coon",
-            "created": Any<Integer>,
+            "created": Any<String>,
             "name": "Gypsy",
           },
         ]
