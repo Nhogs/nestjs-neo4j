@@ -61,56 +61,114 @@ export abstract class Neo4jModelService<T> {
     return queries;
   }
 
-  async create(props: Record<string, any>): Promise<T> {
-    this.logger?.debug('create(' + JSON.stringify(props) + ')');
-
-    const res = await this._runWithDebug(
-      `CREATE (n:\`${this.label}\`) SET n=$props ${
+  createQuery(props: Record<string, any>): {
+    cypher: string;
+    options: {
+      params?: Record<string, any>;
+      sessionOptions?: SessionOptions;
+    };
+  } {
+    return {
+      cypher: `CREATE (n:\`${this.label}\`) SET n=$props ${
         this.timestamp ? `SET n.\`${this.timestamp}\` = timestamp() ` : ''
       }RETURN properties(n) AS created`,
-      {
+      options: {
         params: { props: this.toNeo4j(props) },
         sessionOptions: { write: true },
       },
-    );
+    };
+  }
+
+  async create(props: Record<string, any>): Promise<T> {
+    this.logger?.debug('create(' + JSON.stringify(props) + ')');
+
+    const query = this.createQuery(props);
+    const res = await this._runWithDebug(query.cypher, query.options);
 
     return res.length > 0 ? this.fromNeo4j(res[0].created) : undefined;
   }
 
-  async merge(props: Record<string, any>): Promise<T> {
-    this.logger?.debug('merge(' + JSON.stringify(props) + ')');
-
-    const res = await this._runWithDebug(
-      `MERGE (n:\`${this.label}\`{${Object.keys(props).map(
+  mergeQuery(props: Record<string, any>): {
+    cypher: string;
+    options: {
+      params?: Record<string, any>;
+      sessionOptions?: SessionOptions;
+    };
+  } {
+    return {
+      cypher: `MERGE (n:\`${this.label}\`{${Object.keys(props).map(
         (k) => '`' + k + '`:$props.`' + k + '`',
       )}})${
         this.timestamp
           ? ` ON CREATE SET n.\`${this.timestamp}\` = timestamp()`
           : ''
       } RETURN properties(n) AS merged`,
-      {
+      options: {
         params: { props: this.toNeo4j(props) },
         sessionOptions: { write: true },
       },
-    );
+    };
+  }
+
+  async merge(props: Record<string, any>): Promise<T> {
+    this.logger?.debug('merge(' + JSON.stringify(props) + ')');
+
+    const query = this.mergeQuery(props);
+    const res = await this._runWithDebug(query.cypher, query.options);
 
     return res.length > 0 ? this.fromNeo4j(res[0].merged) : undefined;
+  }
+
+  deleteQuery(props: Record<string, any>): {
+    cypher: string;
+    options: {
+      params?: Record<string, any>;
+      sessionOptions?: SessionOptions;
+    };
+  } {
+    return {
+      cypher: `MATCH (n:\`${this.label}\`{${Object.keys(props).map(
+        (k) => '`' + k + '`:' + JSON.stringify(props[k]),
+      )}}) WITH n, properties(n) AS deleted DELETE n RETURN deleted`,
+      options: {
+        params: { props: this.toNeo4j(props) },
+        sessionOptions: { write: true },
+      },
+    };
   }
 
   async delete(props: Record<string, any>): Promise<T[]> {
     this.logger?.debug('delete(' + JSON.stringify(props) + ')');
 
-    const res = await this._runWithDebug(
-      `MATCH (n:\`${this.label}\`{${Object.keys(props).map(
-        (k) => '`' + k + '`:' + JSON.stringify(props[k]),
-      )}}) WITH n, properties(n) AS deleted DELETE n RETURN deleted`,
-      {
-        params: { props: this.toNeo4j(props) },
-        sessionOptions: { write: true },
-      },
-    );
+    const query = this.deleteQuery(props);
+    const res = await this._runWithDebug(query.cypher, query.options);
 
     return res.map((r) => this.fromNeo4j(r.deleted));
+  }
+
+  findAllQuery(params?: {
+    skip?: number;
+    limit?: number;
+    orderBy?: string;
+    descending?: boolean;
+  }): {
+    cypher: string;
+    options: {
+      params?: Record<string, any>;
+      sessionOptions?: SessionOptions;
+    };
+  } {
+    return {
+      cypher: `MATCH (n:\`${this.label}\`) RETURN properties(n) AS matched${
+        params?.orderBy
+          ? ` ORDER BY n.\`${params?.orderBy}\`` +
+            (params?.descending ? ' DESC' : '')
+          : ''
+      } SKIP $skip LIMIT $limit`,
+      options: {
+        params: { ...Neo4jModelService._convertSkipLimit(params) },
+      },
+    };
   }
 
   async findAll(params?: {
@@ -121,19 +179,38 @@ export abstract class Neo4jModelService<T> {
   }): Promise<T[]> {
     this.logger?.debug('findAll(' + JSON.stringify(params) + ')');
 
-    const res = await this._runWithDebug(
-      `MATCH (n:\`${this.label}\`) RETURN properties(n) AS matched${
-        params?.orderBy
-          ? ` ORDER BY n.\`${params?.orderBy}\`` +
-            (params?.descending ? ' DESC' : '')
+    const query = this.findAllQuery(params);
+    const res = await this._runWithDebug(query.cypher, query.options);
+    return res.map((r) => this.fromNeo4j(r.matched));
+  }
+
+  findByQuery(params: {
+    props: Record<string, any>;
+    skip?: number;
+    limit?: number;
+    orderBy?: string;
+    descending?: boolean;
+  }): {
+    cypher: string;
+    options: {
+      params?: Record<string, any>;
+      sessionOptions?: SessionOptions;
+    };
+  } {
+    const props = this.toNeo4j(params.props);
+    return {
+      cypher: `MATCH (n:\`${this.label}\`{${Object.keys(props).map(
+        (k) => '`' + k + '`:' + JSON.stringify(props[k]),
+      )}}) RETURN properties(n) AS matched${
+        params.orderBy
+          ? ` ORDER BY n.\`${params.orderBy}\`` +
+            (params.descending ? ' DESC' : '')
           : ''
       } SKIP $skip LIMIT $limit`,
-      {
+      options: {
         params: { ...Neo4jModelService._convertSkipLimit(params) },
       },
-    );
-
-    return res.map((r) => this.fromNeo4j(r.matched));
+    };
   }
 
   async findBy(params: {
@@ -145,21 +222,8 @@ export abstract class Neo4jModelService<T> {
   }): Promise<T[]> {
     this.logger?.debug('findBy(' + JSON.stringify(params) + ')');
 
-    const props = this.toNeo4j(params.props);
-
-    const res = await this._runWithDebug(
-      `MATCH (n:\`${this.label}\`{${Object.keys(props).map(
-        (k) => '`' + k + '`:' + JSON.stringify(props[k]),
-      )}}) RETURN properties(n) AS matched${
-        params.orderBy
-          ? ` ORDER BY n.\`${params.orderBy}\`` +
-            (params.descending ? ' DESC' : '')
-          : ''
-      } SKIP $skip LIMIT $limit`,
-      {
-        params: { ...Neo4jModelService._convertSkipLimit(params) },
-      },
-    );
+    const query = this.findByQuery(params);
+    const res = await this._runWithDebug(query.cypher, query.options);
     return res.map((r) => this.fromNeo4j(r.matched));
   }
 

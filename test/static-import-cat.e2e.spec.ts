@@ -37,6 +37,35 @@ describe('Cats', () => {
             `);
   });
 
+  it(`should create Cat query`, async () => {
+    expect(
+      catsService.createQuery({
+        name: 'Gypsy',
+        age: 5,
+        breed: 'Maine Coon',
+      }),
+    ).toMatchInlineSnapshot(`
+      Object {
+        "cypher": "CREATE (n:\`Cat\`) SET n=$props SET n.\`created\` = timestamp() RETURN properties(n) AS created",
+        "options": Object {
+          "params": Object {
+            "props": Object {
+              "age": Integer {
+                "high": 0,
+                "low": 5,
+              },
+              "breed": "Maine Coon",
+              "name": "Gypsy",
+            },
+          },
+          "sessionOptions": Object {
+            "write": true,
+          },
+        },
+      }
+    `);
+  });
+
   it(`should create Cat`, async () => {
     expect(
       await catsService.create({
@@ -65,16 +94,45 @@ describe('Cats', () => {
         },
       ],
       `
-        Array [
-          Object {
-            "age": 5,
-            "breed": "Maine Coon",
-            "created": Any<String>,
-            "name": "Gypsy",
-          },
-        ]
-      `,
+                      Array [
+                        Object {
+                          "age": 5,
+                          "breed": "Maine Coon",
+                          "created": Any<String>,
+                          "name": "Gypsy",
+                        },
+                      ]
+                  `,
     );
+  });
+
+  it(`should merge Cat query`, async () => {
+    expect(
+      catsService.mergeQuery({
+        name: 'Gypsy',
+        age: 5,
+        breed: 'Maine Coon',
+      }),
+    ).toMatchInlineSnapshot(`
+      Object {
+        "cypher": "MERGE (n:\`Cat\`{\`name\`:$props.\`name\`,\`age\`:$props.\`age\`,\`breed\`:$props.\`breed\`}) ON CREATE SET n.\`created\` = timestamp() RETURN properties(n) AS merged",
+        "options": Object {
+          "params": Object {
+            "props": Object {
+              "age": Integer {
+                "high": 0,
+                "low": 5,
+              },
+              "breed": "Maine Coon",
+              "name": "Gypsy",
+            },
+          },
+          "sessionOptions": Object {
+            "write": true,
+          },
+        },
+      }
+    `);
   });
 
   it(`should merge Cat`, async () => {
@@ -125,16 +183,38 @@ describe('Cats', () => {
         },
       ],
       `
-        Array [
-          Object {
-            "age": 5,
-            "breed": "Maine Coon",
-            "created": Any<String>,
-            "name": "Gypsy",
-          },
-        ]
-      `,
+                      Array [
+                        Object {
+                          "age": 5,
+                          "breed": "Maine Coon",
+                          "created": Any<String>,
+                          "name": "Gypsy",
+                        },
+                      ]
+                  `,
     );
+  });
+
+  it(`should delete Cat query`, async () => {
+    expect(
+      catsService.deleteQuery({
+        name: 'Gypsy',
+      }),
+    ).toMatchInlineSnapshot(`
+      Object {
+        "cypher": "MATCH (n:\`Cat\`{\`name\`:\\"Gypsy\\"}) WITH n, properties(n) AS deleted DELETE n RETURN deleted",
+        "options": Object {
+          "params": Object {
+            "props": Object {
+              "name": "Gypsy",
+            },
+          },
+          "sessionOptions": Object {
+            "write": true,
+          },
+        },
+      }
+    `);
   });
 
   it(`should delete Cat`, async () => {
@@ -171,6 +251,27 @@ describe('Cats', () => {
     );
   });
 
+  it(`should findBy query`, async () => {
+    return expect(catsService.findByQuery({ props: { name: 'Gypsy' } }))
+      .toMatchInlineSnapshot(`
+              Object {
+                "cypher": "MATCH (n:\`Cat\`{\`name\`:\\"Gypsy\\"}) RETURN properties(n) AS matched SKIP $skip LIMIT $limit",
+                "options": Object {
+                  "params": Object {
+                    "limit": Integer {
+                      "high": 0,
+                      "low": 10,
+                    },
+                    "skip": Integer {
+                      "high": 0,
+                      "low": 0,
+                    },
+                  },
+                },
+              }
+            `);
+  });
+
   it(`should findByName`, async () => {
     await catsService.create({
       name: 'Gypsy',
@@ -187,15 +288,15 @@ describe('Cats', () => {
         },
       ],
       `
-        Array [
-          Object {
-            "age": 5,
-            "breed": "Maine Coon",
-            "created": Any<String>,
-            "name": "Gypsy",
-          },
-        ]
-      `,
+                      Array [
+                        Object {
+                          "age": 5,
+                          "breed": "Maine Coon",
+                          "created": Any<String>,
+                          "name": "Gypsy",
+                        },
+                      ]
+                  `,
     );
   });
 
@@ -212,18 +313,18 @@ describe('Cats', () => {
         t[1],
       ]),
     ).toMatchInlineSnapshot(`
-      Array [
-        Array [
-          Object {
-            "age": 5,
-            "breed": "Maine Coon",
-            "created": "x",
-            "name": "Gypsy",
-          },
-          2,
-        ],
-      ]
-    `);
+                    Array [
+                      Array [
+                        Object {
+                          "age": 5,
+                          "breed": "Maine Coon",
+                          "created": "x",
+                          "name": "Gypsy",
+                        },
+                        2,
+                      ],
+                    ]
+                `);
   });
 
   afterAll(async () => {
