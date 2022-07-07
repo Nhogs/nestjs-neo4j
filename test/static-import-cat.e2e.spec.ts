@@ -8,6 +8,7 @@ describe('Cats', () => {
   let app: INestApplication;
   let neo4jService: Neo4jService;
   let catsService: CatsService;
+
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({
       imports: [AppModule],
@@ -20,9 +21,12 @@ describe('Cats', () => {
   });
 
   beforeEach(async () => {
-    await neo4jService.run('MATCH (n) DETACH DELETE n', {
-      sessionOptions: { write: true },
-    });
+    await neo4jService.run(
+      { cypher: 'MATCH (n) DETACH DELETE n' },
+      {
+        write: true,
+      },
+    );
   });
 
   it(`should runCypherConstraints`, async () => {
@@ -47,19 +51,14 @@ describe('Cats', () => {
     ).toMatchInlineSnapshot(`
       Object {
         "cypher": "CREATE (n:\`Cat\`) SET n=$props SET n.\`created\` = timestamp() RETURN properties(n) AS created",
-        "options": Object {
-          "params": Object {
-            "props": Object {
-              "age": Integer {
-                "high": 0,
-                "low": 5,
-              },
-              "breed": "Maine Coon",
-              "name": "Gypsy",
+        "parameters": Object {
+          "props": Object {
+            "age": Integer {
+              "high": 0,
+              "low": 5,
             },
-          },
-          "sessionOptions": Object {
-            "write": true,
+            "breed": "Maine Coon",
+            "name": "Gypsy",
           },
         },
       }
@@ -116,19 +115,14 @@ describe('Cats', () => {
     ).toMatchInlineSnapshot(`
       Object {
         "cypher": "MERGE (n:\`Cat\`{\`name\`:$props.\`name\`,\`age\`:$props.\`age\`,\`breed\`:$props.\`breed\`}) ON CREATE SET n.\`created\` = timestamp() RETURN properties(n) AS merged",
-        "options": Object {
-          "params": Object {
-            "props": Object {
-              "age": Integer {
-                "high": 0,
-                "low": 5,
-              },
-              "breed": "Maine Coon",
-              "name": "Gypsy",
+        "parameters": Object {
+          "props": Object {
+            "age": Integer {
+              "high": 0,
+              "low": 5,
             },
-          },
-          "sessionOptions": Object {
-            "write": true,
+            "breed": "Maine Coon",
+            "name": "Gypsy",
           },
         },
       }
@@ -203,14 +197,9 @@ describe('Cats', () => {
     ).toMatchInlineSnapshot(`
       Object {
         "cypher": "MATCH (n:\`Cat\`{\`name\`:\\"Gypsy\\"}) WITH n, properties(n) AS deleted DELETE n RETURN deleted",
-        "options": Object {
-          "params": Object {
-            "props": Object {
-              "name": "Gypsy",
-            },
-          },
-          "sessionOptions": Object {
-            "write": true,
+        "parameters": Object {
+          "props": Object {
+            "name": "Gypsy",
           },
         },
       }
@@ -256,16 +245,14 @@ describe('Cats', () => {
       .toMatchInlineSnapshot(`
               Object {
                 "cypher": "MATCH (n:\`Cat\`{\`name\`:\\"Gypsy\\"}) RETURN properties(n) AS matched SKIP $skip LIMIT $limit",
-                "options": Object {
-                  "params": Object {
-                    "limit": Integer {
-                      "high": 0,
-                      "low": 10,
-                    },
-                    "skip": Integer {
-                      "high": 0,
-                      "low": 0,
-                    },
+                "parameters": Object {
+                  "limit": Integer {
+                    "high": 0,
+                    "low": 10,
+                  },
+                  "skip": Integer {
+                    "high": 0,
+                    "low": 0,
                   },
                 },
               }
@@ -298,6 +285,32 @@ describe('Cats', () => {
                       ]
                   `,
     );
+  });
+  it(`should searchByQuery query`, async () => {
+    return expect(catsService.searchByQuery({ prop: 'name', terms: ['psy'] }))
+      .toMatchInlineSnapshot(`
+              Object {
+                "cypher": "MATCH (n:\`Cat\`) WITH n, split(n.\`name\`, ' ') as words
+                  WHERE ANY (term IN $terms WHERE ANY(word IN words WHERE word CONTAINS term))
+                  WITH n, words, 
+                  CASE WHEN apoc.text.join($terms, '') = apoc.text.join(words, '') THEN 100
+                  ELSE reduce(s = 0, st IN $terms | s + reduce(s2 = 0, w IN words | CASE WHEN (w = st) THEN (s2 + 4) ELSE CASE WHEN (w CONTAINS st) THEN (s2 +2) ELSE (s2) END END)) END AS score 
+                  ORDER BY score DESC SKIP $skip LIMIT $limit RETURN properties(n) as matched, score",
+                "parameters": Object {
+                  "limit": Integer {
+                    "high": 0,
+                    "low": 10,
+                  },
+                  "skip": Integer {
+                    "high": 0,
+                    "low": 0,
+                  },
+                  "terms": Array [
+                    "psy",
+                  ],
+                },
+              }
+            `);
   });
 
   it(`should searchByName`, async () => {

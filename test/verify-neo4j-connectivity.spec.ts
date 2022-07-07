@@ -26,9 +26,12 @@ describe('Verify Neo4j Connectivity', () => {
   });
 
   beforeEach(async () => {
-    await neo4jService.run('MATCH (n) DETACH DELETE n', {
-      sessionOptions: { write: true },
-    });
+    await neo4jService.run(
+      { cypher: 'MATCH (n) DETACH DELETE n' },
+      {
+        write: true,
+      },
+    );
   });
 
   it('should verify connectivity', async () => {
@@ -42,7 +45,7 @@ describe('Verify Neo4j Connectivity', () => {
 
   it('should rxRun', (done) => {
     neo4jService
-      .rxRun('MATCH (n) RETURN count(n) AS count')
+      .rxRun({ cypher: 'MATCH (n) RETURN count(n) AS count' })
       .records()
       .subscribe({
         next: (record) => {

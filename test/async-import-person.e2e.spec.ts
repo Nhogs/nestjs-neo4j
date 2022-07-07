@@ -20,9 +20,12 @@ describe('Persons', () => {
   });
 
   beforeEach(async () => {
-    await neo4jService.run('MATCH (n) DETACH DELETE n', {
-      sessionOptions: { write: true },
-    });
+    await neo4jService.run(
+      { cypher: 'MATCH (n) DETACH DELETE n' },
+      {
+        write: true,
+      },
+    );
   });
 
   it(`/post /get Person`, (done) => {

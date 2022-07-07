@@ -22,19 +22,19 @@ export class PersonService extends Neo4jModelService<PersonDto> {
     to: string,
   ): Promise<LikedDto> {
     await this.neo4jService.run(
-      `MATCH (f:Person{name:$from}),(t:Person{name:$to}) MERGE (f)-[:LIKED{${Object.keys(
-        createLikedDto,
-      )
-        .map((k) => `${k}:$${k}`)
-        .join(`, `)}}]->(t)`,
       {
-        params: {
+        cypher: `MATCH (f:Person{name:$from}),(t:Person{name:$to}) MERGE (f)-[:LIKED{${Object.keys(
+          createLikedDto,
+        )
+          .map((k) => `${k}:$${k}`)
+          .join(`, `)}}]->(t)`,
+        parameters: {
           ...createLikedDto,
           from,
           to,
         },
-        sessionOptions: { write: true },
       },
+      { write: true },
     );
     return createLikedDto;
   }
@@ -44,12 +44,11 @@ export class PersonService extends Neo4jModelService<PersonDto> {
   }
 
   async findLiked(name: string): Promise<[LikedDto, PersonDto][]> {
-    const results = await this.neo4jService.run(
-      'MATCH (f:`Person`{name:$name})-[l:LIKED]->(t:Person) RETURN properties(l) AS liked, properties(t) AS person ORDER BY person.name ',
-      {
-        params: { name },
-      },
-    );
+    const results = await this.neo4jService.run({
+      cypher:
+        'MATCH (f:`Person`{name:$name})-[l:LIKED]->(t:Person) RETURN properties(l) AS liked, properties(t) AS person ORDER BY person.name ',
+      parameters: { name },
+    });
 
     return results.records.map((record) => {
       const person = record.toObject().person;

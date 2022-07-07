@@ -79,13 +79,13 @@ export class CatService {
 
   async create(cat: Cat): Promise<Cat> {
     const result = await this.neo4jService.run(
-      'CREATE (c:`Cat`) SET c=$props RETURN properties(c) AS cat',
       {
-        params: {
+        cypher:'CREATE (c:`Cat`) SET c=$props RETURN properties(c) AS cat',
+        parameters: {
           props: cat,
-        },
-        sessionOptions: { write: true },
+        }
       },
+      { write: true },
     );
 
     return result.records[0].toObject().cat;
@@ -93,7 +93,7 @@ export class CatService {
 
   async findAll(): Promise<Cat[]> {
     return (
-      await this.neo4jService.run('MATCH (c:`Cat`) RETURN properties(c) AS cat')
+      await this.neo4jService.run({cypher:'MATCH (c:`Cat`) RETURN properties(c) AS cat'})
     ).records.map((record) => record.toObject().cat);
   }
 }
@@ -103,7 +103,7 @@ export class CatService {
 
 ```typescript
 neo4jService
-  .rxRun('MATCH (n) RETURN count(n) AS count')
+  .rxRun({cypher:'MATCH (n) RETURN count(n) AS count'})
   .records()
   .subscribe({
     next: (record) => {

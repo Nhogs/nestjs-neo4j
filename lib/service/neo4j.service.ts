@@ -10,8 +10,9 @@ import neo4j, {
 } from 'neo4j-driver';
 import { Inject, Injectable, OnApplicationShutdown } from '@nestjs/common';
 import { NEO4J_CONFIG, NEO4J_DRIVER } from '../constant';
-import { Neo4jConfig, SessionOptions } from '../interface';
+import { Neo4jConfig, Query, SessionOptions } from '../interface';
 import { Neo4jMetadataStorage } from '../storage';
+import { TransactionConfig } from 'neo4j-driver-core/types/session';
 
 @Injectable()
 /**
@@ -63,28 +64,30 @@ export class Neo4jService implements OnApplicationShutdown {
    * Run Cypher query in regular session.
    */
   run(
-    cypher: string,
-    options?: {
-      params?: Record<string, any>;
-      sessionOptions?: SessionOptions;
-    },
+    query: Query,
+    sessionOptions?: SessionOptions,
+    transactionConfig?: TransactionConfig,
   ): Result {
-    const { params, sessionOptions } = options || {};
-    return this.getSession(sessionOptions).run(cypher, params);
+    return this.getSession(sessionOptions).run(
+      query.cypher,
+      query.parameters,
+      transactionConfig,
+    );
   }
 
   /**
    * Run Cypher query in reactive session.
    */
   rxRun(
-    cypher: string,
-    options?: {
-      params?: Record<string, any>;
-      sessionOptions?: SessionOptions;
-    },
+    query: Query,
+    sessionOptions?: SessionOptions,
+    transactionConfig?: TransactionConfig,
   ): RxResult {
-    const { params, sessionOptions } = options || {};
-    return this.getRxSession(sessionOptions).run(cypher, params);
+    return this.getRxSession(sessionOptions).run(
+      query.cypher,
+      query.parameters,
+      transactionConfig,
+    );
   }
 
   /**
