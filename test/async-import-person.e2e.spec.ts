@@ -5,10 +5,14 @@ import { AppAsyncModule } from './src/app.async.module';
 import { Neo4jService } from '../lib';
 import { PersonDto } from './src/person/dto/person.dto';
 import { LikedDto } from './src/person/dto/liked.dto';
+import { LikedService } from './src/person/liked.service';
+import { PersonService } from './src/person/person.service';
 
 describe('Persons', () => {
   let app: INestApplication;
   let neo4jService: Neo4jService;
+  let likedService: LikedService;
+  let personService: PersonService;
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({
       imports: [AppAsyncModule],
@@ -17,6 +21,8 @@ describe('Persons', () => {
     app = moduleRef.createNestApplication();
     await app.init();
     neo4jService = app.get<Neo4jService>(Neo4jService);
+    likedService = app.get<LikedService>(LikedService);
+    personService = app.get<PersonService>(PersonService);
   });
 
   beforeEach(async () => {
@@ -26,6 +32,33 @@ describe('Persons', () => {
         write: true,
       },
     );
+  });
+
+  it(`Should create liked query`, () => {
+    const query = likedService.createQuery(
+      { when: '2020', since: '2000' },
+      { name: 'Wong' },
+      { name: 'Smith' },
+      personService,
+      personService,
+    );
+    expect(query).toMatchInlineSnapshot(`
+      Object {
+        "cypher": "MATCH (f:\`Person\`), (t:\`Person\`) WHERE f.\`name\` = $fp.\`name\` AND t.\`name\` = $tp.\`name\` CREATE (f)-[r:\`LIKED\`]->(t) SET r=$p RETURN properties(r) AS created",
+        "parameters": Object {
+          "fp": Object {
+            "name": "Wong",
+          },
+          "p": Object {
+            "since": "2000",
+            "when": "2020",
+          },
+          "tp": Object {
+            "name": "Smith",
+          },
+        },
+      }
+    `);
   });
 
   it(`/post /get Person`, (done) => {

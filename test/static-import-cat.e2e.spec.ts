@@ -50,7 +50,7 @@ describe('Cats', () => {
       }),
     ).toMatchInlineSnapshot(`
       Object {
-        "cypher": "CREATE (n:\`Cat\`) SET n=$props SET n.\`created\` = timestamp() RETURN properties(n) AS created",
+        "cypher": "CREATE (n:\`Cat\`) SET n=$props, n.\`created\` = timestamp() RETURN properties(n) AS created",
         "parameters": Object {
           "props": Object {
             "age": Integer {

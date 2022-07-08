@@ -6,7 +6,7 @@
 
 [Neo4j](https://neo4j.com/) module for [Nest.js](https://github.com/nestjs/nest).
 
-[![Firebase CI](https://github.com/nhogs/nestjs-neo4j/actions/workflows/e2e-test.yml/badge.svg)](https://github.com/Nhogs/nestjs-neo4j/actions/workflows/e2e-test.yml)
+[![e2e-test](https://github.com/nhogs/nestjs-neo4j/actions/workflows/e2e-test.yml/badge.svg)](https://github.com/Nhogs/nestjs-neo4j/actions/workflows/e2e-test.yml)
 [![Maintainability](https://api.codeclimate.com/v1/badges/2de17798cf9b4d9cfd83/maintainability)](https://codeclimate.com/github/Nhogs/nestjs-neo4j/maintainability)
 [![Test Coverage](https://api.codeclimate.com/v1/badges/2de17798cf9b4d9cfd83/test_coverage)](https://codeclimate.com/github/Nhogs/nestjs-neo4j/test_coverage)
 
@@ -155,15 +155,33 @@ CREATE CONSTRAINT `surname_is_unique` IF NOT EXISTS FOR (p:`Person`) REQUIRE p.`
 CREATE CONSTRAINT `person_name_exists` IF NOT EXISTS FOR (p:`Person`) REQUIRE p.`age` IS NOT NULL;
 ```
 
-### Extends Neo4jModelService to get CRUD methods:
+### Extends Neo4jModelService helpers to get CRUD methods for node or relationships:
 
-- `runCypherConstraints`
-- `create`
-- `merge`
-- `delete`
-- `findAll`
-- `findBy`
-- `searchBy`
+```mermaid
+classDiagram 
+class Neo4jModelService~T~
+<<abstract>> Neo4jModelService
+class Neo4jNodeModelService~N~
+<<abstract>> Neo4jNodeModelService
+class Neo4jRelationshipModelService~R~
+<<abstract>> Neo4jRelationshipModelService
+Neo4jModelService : string label*
+Neo4jModelService : runCypherConstraints()
+Neo4jModelService <|--Neo4jNodeModelService
+Neo4jNodeModelService : nodeCRUDFunctions() 
+Neo4jModelService <|--Neo4jRelationshipModelService
+Neo4jRelationshipModelService : relationshipCRUDFunctions() 
+```
+
+See source code for more details:
+
+- [Neo4jModelService](lib/service/neo4j.model.service.ts)
+- [Neo4jNodeModelService](lib/service/neo4j.node.model.service.ts)
+- [Neo4jRelationshipModelService](lib/service/neo4j.relationship.model.service.ts)
+
+#### Examples:
+
+Look at [E2e tests usage](test) for more details
 
 ```typescript
 /**
@@ -171,13 +189,32 @@ CREATE CONSTRAINT `person_name_exists` IF NOT EXISTS FOR (p:`Person`) REQUIRE p.
  */
 
 @Injectable()
-export class CatsService extends Neo4jModelService<Cat> {
+export class CatsService extends Neo4jNodeModelService<Cat> {
   constructor(protected readonly neo4jService: Neo4jService) {
     super();
   }
 
-  protected label = 'Cat';
-  protected logger = undefined;
+  label = 'Cat';
+
+  fromNeo4j(model: Record<string, any>): Cat {
+    return {
+      ...model,
+      age: model.age.toNumber(),
+      created: model.created.toString(),
+    } as Cat;
+  }
+
+  toNeo4j(cat: Record<string, any>): Record<string, any> {
+    let result: Record<string, any> = { ...cat };
+
+    if (!isNaN(result.age)) {
+      result.age = int(result.age);
+    }
+
+    return result;
+  }
+
+  // Add a property named 'created' with timestamp on creation
   protected timestamp = 'created';
 
   async findByName(params: {
@@ -206,6 +243,7 @@ export class CatsService extends Neo4jModelService<Cat> {
     });
   }
 }
+
 ```
 
 ## License

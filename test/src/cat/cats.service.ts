@@ -1,14 +1,17 @@
 import { Injectable } from '@nestjs/common';
 import { Cat } from './dto/cat';
-import { int, Neo4jModelService, Neo4jService } from '../../../lib';
+import { int, Neo4jService } from '../../../lib';
+import { Neo4jNodeModelService } from '../../../lib/service/neo4j.node.model.service';
 
 @Injectable()
-export class CatsService extends Neo4jModelService<Cat> {
+export class CatsService extends Neo4jNodeModelService<Cat> {
   constructor(protected readonly neo4jService: Neo4jService) {
     super();
   }
 
-  protected fromNeo4j(model: Record<string, any>): Cat {
+  label = 'Cat';
+
+  fromNeo4j(model: Record<string, any>): Cat {
     return {
       ...model,
       age: model.age.toNumber(),
@@ -16,7 +19,7 @@ export class CatsService extends Neo4jModelService<Cat> {
     } as Cat;
   }
 
-  protected toNeo4j(cat: Record<string, any>): Record<string, any> {
+  toNeo4j(cat: Record<string, any>): Record<string, any> {
     let result: Record<string, any> = { ...cat };
 
     if (!isNaN(result.age)) {
@@ -26,8 +29,7 @@ export class CatsService extends Neo4jModelService<Cat> {
     return result;
   }
 
-  protected label = 'Cat';
-  protected logger = undefined;
+  // Add a property named 'created' with timestamp on creation
   protected timestamp = 'created';
 
   async findByName(params: {

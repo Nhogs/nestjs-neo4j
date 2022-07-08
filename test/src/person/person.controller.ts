@@ -2,10 +2,14 @@ import { Body, Controller, Get, Param, Post } from '@nestjs/common';
 import { PersonService } from './person.service';
 import { PersonDto } from './dto/person.dto';
 import { LikedDto } from './dto/liked.dto';
+import { LikedService } from './liked.service';
 
 @Controller('person')
 export class PersonController {
-  constructor(private readonly personService: PersonService) {}
+  constructor(
+    private readonly personService: PersonService,
+    private readonly likedService: LikedService,
+  ) {}
 
   @Post()
   async create(@Body() createPersonDto: PersonDto) {
@@ -18,7 +22,13 @@ export class PersonController {
     @Param('to') to: string,
     @Body() createLikedDto: LikedDto,
   ) {
-    return this.personService.createLiked(createLikedDto, from, to);
+    return this.likedService.create(
+      createLikedDto,
+      { name: from },
+      { name: to },
+      this.personService,
+      this.personService,
+    );
   }
 
   @Get()
@@ -30,6 +40,6 @@ export class PersonController {
   async getLiked(
     @Param('name') name: string,
   ): Promise<[LikedDto, PersonDto][]> {
-    return this.personService.findLiked(name);
+    return this.likedService.findLiked(name);
   }
 }
