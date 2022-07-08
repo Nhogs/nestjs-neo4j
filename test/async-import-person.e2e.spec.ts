@@ -114,7 +114,7 @@ describe('Persons', () => {
       });
   });
 
-  it('should generate constraints', () => {
+  it('should generate All constraints', () => {
     expect(neo4jService.getCypherConstraints()).toMatchInlineSnapshot(`
       Array [
         "CREATE CONSTRAINT \`node_key_with_config\` FOR (p:\`Person\`) REQUIRE (p.\`name\`, p.\`age\`) IS NODE KEY",

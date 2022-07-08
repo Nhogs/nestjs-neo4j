@@ -22,11 +22,13 @@ export class PersonDto {
     additionalKeys: ['age'],
     ifNotExists: false,
   })
+
   @ConstraintKey({
     additionalKeys: ['surname'],
     ifNotExists: false,
     useCommonName: false,
   })
+
   @ConstraintKey({
     name: 'node_key',
     ifNotExists: false,
