@@ -1,4 +1,4 @@
-import { ConstraintKey, ConstraintNotNull, Node } from '../../../../lib';
+import { ConstraintKey, ConstraintNotNull, Node } from '../../../../../lib';
 
 @Node()
 export class Cat {

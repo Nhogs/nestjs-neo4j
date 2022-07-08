@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { Neo4jModule } from '../../lib';
+import { Neo4jModule } from '../../../lib';
 import { CatsModule } from './cat/cats.module';
 
 @Module({

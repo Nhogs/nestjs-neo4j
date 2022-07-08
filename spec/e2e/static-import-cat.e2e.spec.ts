@@ -1,8 +1,17 @@
 import { Test } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import { AppModule } from './src/app.module';
-import { Neo4jService } from '../lib';
+import { Neo4jService } from '../../lib';
 import { CatsService } from './src/cat/cats.service';
+
+async function cleanDb(neo4jService: Neo4jService) {
+  await neo4jService.run(
+    { cypher: 'MATCH (n) DETACH DELETE n' },
+    {
+      write: true,
+    },
+  );
+}
 
 describe('Cats', () => {
   let app: INestApplication;
@@ -21,24 +30,19 @@ describe('Cats', () => {
   });
 
   beforeEach(async () => {
-    await neo4jService.run(
-      { cypher: 'MATCH (n) DETACH DELETE n' },
-      {
-        write: true,
-      },
-    );
+    await cleanDb(neo4jService);
   });
 
   it(`should runCypherConstraints`, async () => {
     return expect(await catsService.runCypherConstraints())
       .toMatchInlineSnapshot(`
-              Array [
-                "CREATE CONSTRAINT \`cat_name_key\` IF NOT EXISTS FOR (p:\`Cat\`) REQUIRE p.\`name\` IS NODE KEY",
-                "CREATE CONSTRAINT \`cat_age_exists\` IF NOT EXISTS FOR (p:\`Cat\`) REQUIRE p.\`age\` IS NOT NULL",
-                "CREATE CONSTRAINT \`cat_breed_exists\` IF NOT EXISTS FOR (p:\`Cat\`) REQUIRE p.\`breed\` IS NOT NULL",
-                "CREATE CONSTRAINT \`cat_created_exists\` IF NOT EXISTS FOR (p:\`Cat\`) REQUIRE p.\`created\` IS NOT NULL",
-              ]
-            `);
+                      Array [
+                        "CREATE CONSTRAINT \`cat_name_key\` IF NOT EXISTS FOR (p:\`Cat\`) REQUIRE p.\`name\` IS NODE KEY",
+                        "CREATE CONSTRAINT \`cat_age_exists\` IF NOT EXISTS FOR (p:\`Cat\`) REQUIRE p.\`age\` IS NOT NULL",
+                        "CREATE CONSTRAINT \`cat_breed_exists\` IF NOT EXISTS FOR (p:\`Cat\`) REQUIRE p.\`breed\` IS NOT NULL",
+                        "CREATE CONSTRAINT \`cat_created_exists\` IF NOT EXISTS FOR (p:\`Cat\`) REQUIRE p.\`created\` IS NOT NULL",
+                      ]
+                  `);
   });
 
   it(`should create Cat query`, async () => {
@@ -50,7 +54,7 @@ describe('Cats', () => {
       }),
     ).toMatchInlineSnapshot(`
       Object {
-        "cypher": "CREATE (n:\`Cat\`) SET n=$props, n.\`created\` = timestamp() RETURN properties(n) AS created",
+        "cypher": "CREATE (\`n\`:\`Cat\`) SET n=$props, \`n\`.\`created\` = timestamp() RETURN properties(n) AS created",
         "parameters": Object {
           "props": Object {
             "age": Integer {
@@ -93,15 +97,15 @@ describe('Cats', () => {
         },
       ],
       `
-                      Array [
-                        Object {
-                          "age": 5,
-                          "breed": "Maine Coon",
-                          "created": Any<String>,
-                          "name": "Gypsy",
-                        },
-                      ]
-                  `,
+              Array [
+                Object {
+                  "age": 5,
+                  "breed": "Maine Coon",
+                  "created": Any<String>,
+                  "name": "Gypsy",
+                },
+              ]
+            `,
     );
   });
 
@@ -114,7 +118,7 @@ describe('Cats', () => {
       }),
     ).toMatchInlineSnapshot(`
       Object {
-        "cypher": "MERGE (n:\`Cat\`{\`name\`:$props.\`name\`,\`age\`:$props.\`age\`,\`breed\`:$props.\`breed\`}) ON CREATE SET n.\`created\` = timestamp() RETURN properties(n) AS merged",
+        "cypher": "MERGE (\`n\`:\`Cat\` {\`name\`: $\`props\`.\`name\`, \`age\`: $\`props\`.\`age\`, \`breed\`: $\`props\`.\`breed\`}) ON CREATE SET \`n\`.\`created\` = timestamp() RETURN properties(n) AS merged",
         "parameters": Object {
           "props": Object {
             "age": Integer {
@@ -196,7 +200,7 @@ describe('Cats', () => {
       }),
     ).toMatchInlineSnapshot(`
       Object {
-        "cypher": "MATCH (n:\`Cat\`{\`name\`:\\"Gypsy\\"}) WITH n, properties(n) AS deleted DELETE n RETURN deleted",
+        "cypher": "MATCH (\`n\`:\`Cat\` {\`name\`: $\`props\`.\`name\`}) WITH n, properties(n) AS deleted DELETE n RETURN deleted",
         "parameters": Object {
           "props": Object {
             "name": "Gypsy",
@@ -244,15 +248,10 @@ describe('Cats', () => {
     return expect(catsService.findByQuery({ props: { name: 'Gypsy' } }))
       .toMatchInlineSnapshot(`
               Object {
-                "cypher": "MATCH (n:\`Cat\`{\`name\`:\\"Gypsy\\"}) RETURN properties(n) AS matched SKIP $skip LIMIT $limit",
+                "cypher": "MATCH (\`n\`:\`Cat\` {\`name\`: $\`props\`.\`name\`}) RETURN properties(n) AS matched",
                 "parameters": Object {
-                  "limit": Integer {
-                    "high": 0,
-                    "low": 10,
-                  },
-                  "skip": Integer {
-                    "high": 0,
-                    "low": 0,
+                  "props": Object {
+                    "name": "Gypsy",
                   },
                 },
               }
@@ -286,25 +285,18 @@ describe('Cats', () => {
                   `,
     );
   });
+
   it(`should searchByQuery query`, async () => {
     return expect(catsService.searchByQuery({ prop: 'name', terms: ['psy'] }))
       .toMatchInlineSnapshot(`
               Object {
-                "cypher": "MATCH (n:\`Cat\`) WITH n, split(n.\`name\`, ' ') as words
+                "cypher": "MATCH (\`n\`:\`Cat\`) WITH n, split(n.\`name\`, ' ') as words
                   WHERE ANY (term IN $terms WHERE ANY(word IN words WHERE word CONTAINS term))
                   WITH n, words, 
                   CASE WHEN apoc.text.join($terms, '') = apoc.text.join(words, '') THEN 100
                   ELSE reduce(s = 0, st IN $terms | s + reduce(s2 = 0, w IN words | CASE WHEN (w = st) THEN (s2 + 4) ELSE CASE WHEN (w CONTAINS st) THEN (s2 +2) ELSE (s2) END END)) END AS score 
-                  ORDER BY score DESC SKIP $skip LIMIT $limit RETURN properties(n) as matched, score",
+                  ORDER BY score DESC RETURN properties(n) as matched, score",
                 "parameters": Object {
-                  "limit": Integer {
-                    "high": 0,
-                    "low": 10,
-                  },
-                  "skip": Integer {
-                    "high": 0,
-                    "low": 0,
-                  },
                   "terms": Array [
                     "psy",
                   ],
@@ -341,6 +333,7 @@ describe('Cats', () => {
   });
 
   afterAll(async () => {
-    await app.close();
+    await cleanDb(neo4jService);
+    return await app.close();
   });
 });

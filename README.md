@@ -47,7 +47,7 @@ $ npm i --save @nhogs/nestjs-neo4j
       database: 'neo4j',
       username: 'neo4j',
       password: 'test',
-      global: true,
+      global: true, // to register in the global scope
     }),
     CatsModule,
   ],
@@ -90,7 +90,7 @@ export class CatService {
   constructor(private readonly neo4jService: Neo4jService) {}
 
   async create(cat: Cat): Promise<Cat> {
-    const result = await this.neo4jService.run(
+    const queryResult = await this.neo4jService.run(
       {
         cypher: 'CREATE (c:`Cat`) SET c=$props RETURN properties(c) AS cat',
         parameters: {
@@ -100,7 +100,7 @@ export class CatService {
       { write: true },
     );
 
-    return result.records[0].toObject().cat;
+    return queryResult.records[0].toObject().cat;
   }
 
   async findAll(): Promise<Cat[]> {
@@ -129,9 +129,19 @@ neo4jService
   });
 ```
 
-### Define constraints with decorators:
+### Define constraints with decorators
+
+- Unique node property constraints
+- Node property existence constraints
+- Relationship property existence constraints
+- Node key constraints
+
+[🔗 Source code](/lib/decorator/constraint.decorator.ts)
 
 ```typescript
+/** 
+ * Person Example
+ */
 @Node({ label: 'Person' })
 export class PersonDto {
   @ConstraintKey({
@@ -189,13 +199,13 @@ Neo4jRelationshipModelService : relationshipCRUDFunctions()
 
 See source code for more details:
 
-- [Neo4jModelService](lib/service/neo4j.model.service.ts)
-- [Neo4jNodeModelService](lib/service/neo4j.node.model.service.ts)
-- [Neo4jRelationshipModelService](lib/service/neo4j.relationship.model.service.ts)
+- [🔗 Neo4jModelService](lib/service/neo4j.model.service.ts)
+- [🔗 Neo4jNodeModelService](lib/service/neo4j.node.model.service.ts)
+- [🔗 Neo4jRelationshipModelService](lib/service/neo4j.relationship.model.service.ts)
 
 #### Examples:
 
-Look at [E2e tests usage](test) for more details
+Look at [🔗 E2e tests usage](spec) for more details
 
 ```typescript
 /**

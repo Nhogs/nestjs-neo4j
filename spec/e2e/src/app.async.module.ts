@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { Neo4jConfig, Neo4jModule } from '../../lib';
+import { Neo4jConfig, Neo4jModule } from '../../../lib';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { PersonModule } from './person/person.module';
 
@@ -20,7 +20,7 @@ import { PersonModule } from './person/person.module';
     }),
     PersonModule,
     ConfigModule.forRoot({
-      envFilePath: './test/src/.test.env',
+      envFilePath: './spec/e2e/.test.env',
     }),
   ],
 })

@@ -1,73 +1,93 @@
 import { Logger } from '@nestjs/common';
 import { Neo4jService } from './neo4j.service';
-import neo4j from 'neo4j-driver';
 import { Query, SessionOptions } from '../interface';
 import { TransactionConfig } from 'neo4j-driver-core/types/session';
+import { int } from 'neo4j-driver';
 
 /**
  * Helper class to generate model service using Neo4j
  */
 export abstract class Neo4jModelService<T> {
-  public abstract readonly label: string;
   protected abstract readonly neo4jService: Neo4jService;
+
+  /**
+   * Node or Relationship label.
+   */
+  public abstract readonly label: string;
 
   /**
    * Override this to use logger.
    */
-  protected readonly logger: Logger;
+  protected abstract readonly logger: Logger | undefined;
 
   /**
    * Override this with property name to generate timestamp on object creation.
    */
-  protected readonly timestamp: string;
+  protected abstract readonly timestamp: string | undefined;
 
-  toNeo4j(t: Record<string, any>): Record<string, any> {
-    return { ...t };
+  /**
+   * Override this to transform object before sending it to Neo4j.
+   * @param params Neo4j compatible Parameters.
+   */
+  public toNeo4j(params: Partial<T>): Record<string, any> {
+    let result: Record<string, any> = { ...params };
+    if (this.timestamp && params.hasOwnProperty(this.timestamp)) {
+      result[this.timestamp] = int(result[this.timestamp]);
+    }
+    return { ...params };
   }
 
-  fromNeo4j(model: Record<string, any>): T {
-    return { ...model } as T;
+  /**
+   * Override this to transform object comming from Neo4j.
+   * @param record Neo4j results to object.
+   */
+  public fromNeo4j(record: Record<string, any>): T {
+    let result: Record<string, any> = { ...record };
+    if (this.timestamp && record.hasOwnProperty(this.timestamp)) {
+      result[this.timestamp] = new Date(result[this.timestamp].toNumber());
+    }
+    return result as T;
   }
 
-  protected _logArg(name: string, args: IArguments) {
-    this.logger?.debug(`${name}(${JSON.stringify(args)})`);
+  /**
+   * Run cypher constraint for this label in a transaction
+   */
+  public async runCypherConstraints(): Promise<string[]> {
+    this.logger?.debug('runCypherConstraints()');
+
+    const queries = this.neo4jService.getCypherConstraints(this.label);
+    const session = this.neo4jService.getSession({ write: true });
+
+    try {
+      const tx = session.beginTransaction();
+      queries.forEach((query) => {
+        tx.run(query);
+      });
+      await tx.commit();
+    } finally {
+      await session.close();
+    }
+
+    return queries;
   }
 
-  protected async _runWithDebug(
+  /**
+   * run query with debug log if logger is defined and convert results to objects.
+   */
+  protected async _run(
     query: Query,
     sessionOptions?: SessionOptions,
     transactionConfig?: TransactionConfig,
   ) {
-    this._logArg('run', arguments);
+    this.logger?.debug('_run', arguments);
 
-    const results = (
-      await this.neo4jService.run(query, sessionOptions, transactionConfig)
-    ).records.map((r) => r.toObject());
+    const queryResult = await this.neo4jService.run(
+      query,
+      sessionOptions,
+      transactionConfig,
+    );
 
-    this.logger?.debug(results);
-    return results;
-  }
-
-  protected static _convertSkipLimit(params?: {
-    skip?: number;
-    limit?: number;
-  }) {
-    return {
-      skip: neo4j.int(params?.skip || 0),
-      limit: neo4j.int(params?.limit || 10),
-    };
-  }
-
-  async runCypherConstraints(): Promise<string[]> {
-    this.logger?.debug('runCypherConstraints()');
-    const queries = this.neo4jService.getCypherConstraints(this.label);
-
-    const session = this.neo4jService.getSession({ write: true });
-    const tx = session.beginTransaction();
-    queries.forEach((query) => {
-      tx.run(query);
-    });
-    await tx.commit();
-    return queries;
+    this.logger?.debug(queryResult);
+    return queryResult.records.map((r) => r.toObject());
   }
 }

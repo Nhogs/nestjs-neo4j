@@ -1,6 +1,6 @@
 {
   "name": "@nhogs/nestjs-neo4j",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "engines": {
     "node": ">=16.x"
   },
@@ -42,7 +42,9 @@
     "eslint-config-prettier": "^8.5.0",
     "eslint-plugin-prettier": "^4.2.1",
     "jest": "^28.1.2",
+    "neo4j-driver": "^4.4.6",
     "prettier": "^2.7.1",
+    "rxjs": "^7.5.5",
     "supertest": "^6.2.4",
     "ts-jest": "^28.0.5",
     "ts-loader": "^9.3.1",
@@ -53,7 +55,7 @@
   "peerDependencies": {
     "@nestjs/common": "^8.0.0",
     "@nestjs/core": "^8.0.0",
-    "neo4j-driver": "^4.4.6",
+    "neo4j-driver": "^4.0.0",
     "reflect-metadata": "^0.1.13",
     "rxjs": "^7.0.0"
   },

@@ -1,5 +1,6 @@
 import neo4j, {
   Driver,
+  QueryResult,
   Result,
   RxResult,
   RxSession,
@@ -61,18 +62,19 @@ export class Neo4jService implements OnApplicationShutdown {
   }
 
   /**
-   * Run Cypher query in regular session.
+   * Run Cypher query in regular session and close the session after getting results.
    */
   run(
     query: Query,
     sessionOptions?: SessionOptions,
     transactionConfig?: TransactionConfig,
-  ): Result {
-    return this.getSession(sessionOptions).run(
-      query.cypher,
-      query.parameters,
-      transactionConfig,
-    );
+  ): Promise<QueryResult> {
+    const session = this.getSession(sessionOptions);
+    return session
+      .run(query.cypher, query.parameters, transactionConfig)
+      .finally(async () => {
+        await session.close();
+      });
   }
 
   /**
