@@ -25,13 +25,13 @@ $ npm i --save @nhogs/nestjs-neo4j
 ## Table Of Content:
 
 - [Usage](#usage)
-    * [In static module definition:](#in-static-module-definition-)
-    * [In async module definition:](#in-async-module-definition-)
-    * [Use in service:](#use-in-service-)
-    * [Run with reactive session](#run-with-reactive-session)
-    * [Define constraints with decorators:](#define-constraints-with-decorators-)
-    * [Extends Neo4jModelService helpers to get CRUD methods for node or relationships:](#extends-neo4jmodelservice-helpers-to-get-crud-methods-for-node-or-relationships-)
-        + [Examples:](#examples-)
+  - [In static module definition:](#in-static-module-definition)
+  - [In async module definition:](#in-async-module-definition)
+  - [Use in service:](#use-in-service)
+  - [Run with reactive session](#run-with-reactive-session)
+  - [Define constraints with decorators:](#define-constraints-with-decorators)
+  - [Extends Neo4jModelService helpers to get CRUD methods for node or relationships:](#extends-neo4jmodelservice-helpers-to-get-crud-methods-for-node-or-relationships)
+    - [Examples:](#examples)
 
 ## Usage
 
@@ -92,10 +92,10 @@ export class CatService {
   async create(cat: Cat): Promise<Cat> {
     const result = await this.neo4jService.run(
       {
-        cypher:'CREATE (c:`Cat`) SET c=$props RETURN properties(c) AS cat',
+        cypher: 'CREATE (c:`Cat`) SET c=$props RETURN properties(c) AS cat',
         parameters: {
           props: cat,
-        }
+        },
       },
       { write: true },
     );
@@ -105,7 +105,9 @@ export class CatService {
 
   async findAll(): Promise<Cat[]> {
     return (
-      await this.neo4jService.run({cypher:'MATCH (c:`Cat`) RETURN properties(c) AS cat'})
+      await this.neo4jService.run({
+        cypher: 'MATCH (c:`Cat`) RETURN properties(c) AS cat',
+      })
     ).records.map((record) => record.toObject().cat);
   }
 }
@@ -115,7 +117,7 @@ export class CatService {
 
 ```typescript
 neo4jService
-  .rxRun({cypher:'MATCH (n) RETURN count(n) AS count'})
+  .rxRun({ cypher: 'MATCH (n) RETURN count(n) AS count' })
   .records()
   .subscribe({
     next: (record) => {
@@ -170,7 +172,7 @@ CREATE CONSTRAINT `person_name_exists` IF NOT EXISTS FOR (p:`Person`) REQUIRE p.
 ### Extends Neo4jModelService helpers to get CRUD methods for node or relationships:
 
 ```mermaid
-classDiagram 
+classDiagram
 class Neo4jModelService~T~
 <<abstract>> Neo4jModelService
 class Neo4jNodeModelService~N~
@@ -180,9 +182,9 @@ class Neo4jRelationshipModelService~R~
 Neo4jModelService : string label*
 Neo4jModelService : runCypherConstraints()
 Neo4jModelService <|--Neo4jNodeModelService
-Neo4jNodeModelService : nodeCRUDFunctions() 
+Neo4jNodeModelService : nodeCRUDFunctions()
 Neo4jModelService <|--Neo4jRelationshipModelService
-Neo4jRelationshipModelService : relationshipCRUDFunctions() 
+Neo4jRelationshipModelService : relationshipCRUDFunctions()
 ```
 
 See source code for more details:
@@ -255,7 +257,6 @@ export class CatsService extends Neo4jNodeModelService<Cat> {
     });
   }
 }
-
 ```
 
 ## License
