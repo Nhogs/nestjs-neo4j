@@ -39,6 +39,25 @@ export abstract class Neo4jNodeModelService<T> extends Neo4jModelService<T> {
     };
   }
 
+  updateQuery(
+    match: Partial<T>,
+    update: Partial<T>,
+    mutate = true,
+    returns = true,
+  ): Query {
+    const props = this.toNeo4j(match);
+    const updates = this.toNeo4j(update);
+
+    const MATCH = `MATCH ${NODE('n', this.label, { props })}`;
+    const SET = ` SET n ${mutate ? '+' : ''}= $updates`;
+    const RETURN = `${returns ? ` RETURN properties(n) AS updated` : ''}`;
+
+    return {
+      cypher: `${MATCH}${SET}${RETURN}`,
+      parameters: { props, updates },
+    };
+  }
+
   deleteQuery(properties: Partial<T>, returns = true): Query {
     const props = this.toNeo4j(properties);
 
@@ -119,14 +138,14 @@ export abstract class Neo4jNodeModelService<T> extends Neo4jModelService<T> {
     };
   }
 
-  async create(properties: Partial<T>): Promise<T> {
-    const res = await this._run(this.createQuery(properties), {
+  async create(props: Partial<T>): Promise<T> {
+    const res = await this._run(this.createQuery(props), {
       write: true,
     });
     return res.length > 0 ? this.fromNeo4j(res[0].created) : undefined;
   }
 
-  createInTx(tx: Transaction, props: T): Transaction {
+  createInTx(tx: Transaction, props: Partial<T>): Transaction {
     const query = this.createQuery(props, false);
     tx.run(query.cypher, query.parameters);
     return tx;
@@ -141,6 +160,28 @@ export abstract class Neo4jNodeModelService<T> extends Neo4jModelService<T> {
 
   mergeInTx(tx: Transaction, props: Partial<T>): Transaction {
     const query = this.mergeQuery(props);
+    tx.run(query.cypher, query.parameters);
+    return tx;
+  }
+
+  async update(
+    match: Partial<T>,
+    update: Partial<T>,
+    mutate = true,
+  ): Promise<T> {
+    const res = await this._run(this.updateQuery(match, update, mutate), {
+      write: true,
+    });
+    return res.length > 0 ? this.fromNeo4j(res[0].updated) : undefined;
+  }
+
+  updateInTx(
+    tx: Transaction,
+    match: Partial<T>,
+    update: Partial<T>,
+    mutate = true,
+  ): Transaction {
+    const query = this.updateQuery(match, update, mutate, false);
     tx.run(query.cypher, query.parameters);
     return tx;
   }

@@ -5,7 +5,7 @@ import { TransactionConfig } from 'neo4j-driver-core/types/session';
 import { int } from 'neo4j-driver';
 
 /**
- * Helper class to generate model service using Neo4j
+ * Helper class to generate model service using Neo4j.
  */
 export abstract class Neo4jModelService<T> {
   protected abstract readonly neo4jService: Neo4jService;
@@ -50,7 +50,7 @@ export abstract class Neo4jModelService<T> {
   }
 
   /**
-   * Run cypher constraint for this label in a transaction
+   * Run cypher constraint for this label in a transaction.
    */
   public async runCypherConstraints(): Promise<string[]> {
     this.logger?.debug('runCypherConstraints()');

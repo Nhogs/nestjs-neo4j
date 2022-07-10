@@ -13,11 +13,10 @@ export class CatsService extends Neo4jNodeModelService<Cat> {
   logger = undefined;
 
   fromNeo4j(model: Record<string, any>): Cat {
-    return {
+    return super.fromNeo4j({
       ...model,
       age: model.age.toNumber(),
-      created: model.created.toString(),
-    } as Cat;
+    });
   }
 
   toNeo4j(cat: Record<string, any>): Record<string, any> {
@@ -27,7 +26,7 @@ export class CatsService extends Neo4jNodeModelService<Cat> {
       result.age = int(result.age);
     }
 
-    return result;
+    return super.toNeo4j(result);
   }
 
   // Add a property named 'created' with timestamp on creation

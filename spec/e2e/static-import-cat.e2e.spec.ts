@@ -13,7 +13,7 @@ async function cleanDb(neo4jService: Neo4jService) {
   );
 }
 
-describe('Cats', () => {
+describe('Cats E2e', () => {
   let app: INestApplication;
   let neo4jService: Neo4jService;
   let catsService: CatsService;
@@ -78,13 +78,13 @@ describe('Cats', () => {
       }),
     ).toMatchInlineSnapshot(
       {
-        created: expect.any(String),
+        created: expect.any(Date),
       },
       `
       Object {
         "age": 5,
         "breed": "Maine Coon",
-        "created": Any<String>,
+        "created": Any<Date>,
         "name": "Gypsy",
       }
     `,
@@ -93,7 +93,7 @@ describe('Cats', () => {
     return expect(await catsService.findAll()).toMatchInlineSnapshot(
       [
         {
-          created: expect.any(String),
+          created: expect.any(Date),
         },
       ],
       `
@@ -101,11 +101,51 @@ describe('Cats', () => {
                 Object {
                   "age": 5,
                   "breed": "Maine Coon",
-                  "created": Any<String>,
+                  "created": Any<Date>,
                   "name": "Gypsy",
                 },
               ]
             `,
+    );
+  });
+
+  it(`should update Cat query`, async () => {
+    expect(catsService.updateQuery({ name: 'Gypsy' }, { name: 'Curly' }))
+      .toMatchInlineSnapshot(`
+      Object {
+        "cypher": "MATCH (\`n\`:\`Cat\` {\`name\`: $\`props\`.\`name\`}) SET n += $updates RETURN properties(n) AS updated",
+        "parameters": Object {
+          "props": Object {
+            "name": "Gypsy",
+          },
+          "updates": Object {
+            "name": "Curly",
+          },
+        },
+      }
+    `);
+  });
+
+  it(`should update Cat`, async () => {
+    await catsService.create({
+      name: 'Gypsy',
+      age: 5,
+      breed: 'Maine Coon',
+    });
+    expect(
+      await catsService.update({ name: 'Gypsy' }, { name: 'Curly' }),
+    ).toMatchInlineSnapshot(
+      {
+        created: expect.any(Date),
+      },
+      `
+      Object {
+        "age": 5,
+        "breed": "Maine Coon",
+        "created": Any<Date>,
+        "name": "Curly",
+      }
+    `,
     );
   });
 
@@ -142,13 +182,13 @@ describe('Cats', () => {
       }),
     ).toMatchInlineSnapshot(
       {
-        created: expect.any(String),
+        created: expect.any(Date),
       },
       `
       Object {
         "age": 5,
         "breed": "Maine Coon",
-        "created": Any<String>,
+        "created": Any<Date>,
         "name": "Gypsy",
       }
     `,
@@ -162,13 +202,13 @@ describe('Cats', () => {
       }),
     ).toMatchInlineSnapshot(
       {
-        created: expect.any(String),
+        created: expect.any(Date),
       },
       `
       Object {
         "age": 5,
         "breed": "Maine Coon",
-        "created": Any<String>,
+        "created": Any<Date>,
         "name": "Gypsy",
       }
     `,
@@ -177,7 +217,7 @@ describe('Cats', () => {
     return expect(await catsService.findAll()).toMatchInlineSnapshot(
       [
         {
-          created: expect.any(String),
+          created: expect.any(Date),
         },
       ],
       `
@@ -185,7 +225,7 @@ describe('Cats', () => {
                         Object {
                           "age": 5,
                           "breed": "Maine Coon",
-                          "created": Any<String>,
+                          "created": Any<Date>,
                           "name": "Gypsy",
                         },
                       ]
@@ -224,7 +264,7 @@ describe('Cats', () => {
     ).toMatchInlineSnapshot(
       [
         {
-          created: expect.any(String),
+          created: expect.any(Date),
         },
       ],
       `
@@ -232,7 +272,7 @@ describe('Cats', () => {
         Object {
           "age": 5,
           "breed": "Maine Coon",
-          "created": Any<String>,
+          "created": Any<Date>,
           "name": "Gypsy",
         },
       ]
@@ -270,7 +310,7 @@ describe('Cats', () => {
     ).toMatchInlineSnapshot(
       [
         {
-          created: expect.any(String),
+          created: expect.any(Date),
         },
       ],
       `
@@ -278,7 +318,7 @@ describe('Cats', () => {
                         Object {
                           "age": 5,
                           "breed": "Maine Coon",
-                          "created": Any<String>,
+                          "created": Any<Date>,
                           "name": "Gypsy",
                         },
                       ]
