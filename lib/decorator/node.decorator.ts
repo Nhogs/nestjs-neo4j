@@ -6,14 +6,14 @@ export type NodeOptions = {
 
 export function Node(options?: NodeOptions): ClassDecorator {
   return (target: Function) => {
-    let name: string;
+    let label: string;
 
     if (!options) {
-      name = target.name;
+      label = target.name;
     } else {
-      name = options.label;
+      label = options.label;
     }
 
-    Neo4jMetadataStorage.addConstraintClassMetadata({ target, name });
+    Neo4jMetadataStorage.addNodeClassDecorator({ target, label });
   };
 }

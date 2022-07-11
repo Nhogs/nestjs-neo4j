@@ -1,8 +1,10 @@
-import { Body, Controller, Get, Param, Post } from "@nestjs/common";
-import { CompanyService } from "../service/company.service";
-import { WorkInDto } from "../dto/work.in.dto";
-import { WorkInService } from "../service/work.in.service";
-import { PersonService } from "../service/person.service";
+import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+import { CompanyService } from '../service/company.service';
+import { WorkInDto } from '../dto/work.in.dto';
+import { WorkInService } from '../service/work.in.service';
+import { PersonService } from '../service/person.service';
+import { PersonDto } from '../dto/person.dto';
+import { CompanyDto } from '../dto/company.dto';
 
 @Controller('WORK_IN')
 export class WorkInController {
@@ -17,7 +19,7 @@ export class WorkInController {
     @Param('from') from: string,
     @Param('to') to: string,
     @Body() workInDto: WorkInDto,
-  ) {
+  ): Promise<WorkInDto[]> {
     return this.workInService.create(
       workInDto,
       { name: from },
@@ -28,7 +30,7 @@ export class WorkInController {
   }
 
   @Get()
-  async findAll() {
+  async findAll(): Promise<[PersonDto, WorkInDto, CompanyDto][]> {
     return this.workInService.findAll();
   }
 }

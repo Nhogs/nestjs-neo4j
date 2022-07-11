@@ -1,22 +1,22 @@
 import {
-  ConstraintKey,
-  ConstraintNotNull,
-  ConstraintUnique,
+  NodeKey,
+  NotNull,
+  Unique,
   Node,
 } from '../../../../../lib';
 
 @Node({ label: 'Person' })
 export class PersonDto {
-  @ConstraintKey({ additionalKeys: ['firstname'] })
+  @NodeKey({ additionalKeys: ['firstname'] })
   name: string;
 
-  @ConstraintNotNull()
+  @NotNull()
   firstname: string;
 
-  @ConstraintNotNull()
-  @ConstraintUnique()
+  @NotNull()
+  @Unique()
   surname: string;
 
-  @ConstraintNotNull()
+  @NotNull()
   age: number;
 }

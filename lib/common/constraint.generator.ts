@@ -25,7 +25,7 @@ export const createCypherConstraint = (
   )} REQUIRE ${properties(props)} ${constraintType}`;
 };
 
-export const generateCommonName = (
+export const generateExplicitName = (
   name: string,
   property: string,
   constraintType: string,

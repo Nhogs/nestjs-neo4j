@@ -31,19 +31,19 @@ export abstract class Neo4jModelService<T> {
    */
   public toNeo4j(params: Partial<T>): Record<string, any> {
     let result: Record<string, any> = { ...params };
-    if (this.timestamp && params.hasOwnProperty(this.timestamp)) {
-      result[this.timestamp] = int(result[this.timestamp]);
+    if (this.timestamp && params && params[this.timestamp]) {
+      result[this.timestamp] = int(params[this.timestamp].getTime());
     }
-    return { ...params };
+    return { ...result };
   }
 
   /**
-   * Override this to transform object comming from Neo4j.
+   * Override this to transform object coming from Neo4j.
    * @param record Neo4j results to object.
    */
   public fromNeo4j(record: Record<string, any>): T {
     let result: Record<string, any> = { ...record };
-    if (this.timestamp && record.hasOwnProperty(this.timestamp)) {
+    if (this.timestamp && record && record[this.timestamp]) {
       result[this.timestamp] = new Date(result[this.timestamp].toNumber());
     }
     return result as T;

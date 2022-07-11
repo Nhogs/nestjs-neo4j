@@ -1,9 +1,9 @@
-import { ConstraintNotNull, Relationship } from '../../../../../lib';
+import { NotNull, Relationship } from '../../../../../lib';
 
-@Relationship({ name: 'LIKE' })
+@Relationship({ type: 'LIKE' })
 export class LikeDto {
-  @ConstraintNotNull()
+  @NotNull()
   when: string;
-  @ConstraintNotNull()
+  @NotNull()
   since: string;
 }

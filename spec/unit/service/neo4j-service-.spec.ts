@@ -1,45 +1,19 @@
-import neo4j from 'neo4j-driver';
-import { INestApplication } from '@nestjs/common';
-import { Neo4jModule, Neo4jService } from '../../../lib';
-import { Test } from '@nestjs/testing';
-
-async function cleanDb(neo4jService: Neo4jService) {
-  await neo4jService.run(
-    { cypher: 'MATCH (n) DETACH DELETE n' },
-    {
-      write: true,
-    },
-  );
-}
+import { Neo4jService } from "../../../lib";
+import { createNeo4jTestApp, Neo4jTestApp } from "../../helpers";
 
 describe('Neo4jService', () => {
-  let app: INestApplication;
-  let neo4jService: Neo4jService;
-  beforeAll(async () => {
-    const moduleRef = await Test.createTestingModule({
-      imports: [
-        Neo4jModule.forRoot({
-          scheme: 'neo4j',
-          host: 'localhost',
-          port: '7687',
-          database: 'neo4j',
-          username: 'neo4j',
-          password: 'test',
-        }),
-      ],
-    }).compile();
+  let app: Neo4jTestApp;
 
-    app = moduleRef.createNestApplication();
-    await app.init();
-    neo4jService = app.get<Neo4jService>(Neo4jService);
+  beforeAll(async () => {
+    app = await createNeo4jTestApp();
   });
 
   beforeEach(async () => {
-    await cleanDb(neo4jService);
+    await app.cleanDb();
   });
 
   it('should verifyConnectivity', async () => {
-    expect(await neo4jService.verifyConnectivity()).toMatchInlineSnapshot(`
+    expect(await app.neo4jService.verifyConnectivity()).toMatchInlineSnapshot(`
       Object {
         "address": "localhost:7687",
         "version": "Neo4j/4.4.8",
@@ -48,19 +22,19 @@ describe('Neo4jService', () => {
   });
 
   it('should getSession', async () => {
-    const session = await neo4jService.getSession();
+    const session = await app.neo4jService.getSession();
     expect(session).toBeDefined();
     return await session.close();
   });
 
   it('should getRxSession', () => {
-    const session = neo4jService.getRxSession();
+    const session = app.neo4jService.getRxSession();
     expect(session).toBeDefined();
     session.close();
   });
 
   it('should run', async () => {
-    const queryResult = await neo4jService.run(
+    const queryResult = await app.neo4jService.run(
       {
         cypher: 'CREATE (n) SET n=$p RETURN properties(n) AS node',
         parameters: { p: { msg: 'hello' } },
@@ -78,7 +52,7 @@ describe('Neo4jService', () => {
   });
 
   it('should rxRun', (done) => {
-    neo4jService
+    app.neo4jService
       .rxRun(
         {
           cypher: 'CREATE (n) SET n=$p RETURN properties(n) AS node',
@@ -102,7 +76,6 @@ describe('Neo4jService', () => {
   });
 
   afterAll(async () => {
-    await cleanDb(neo4jService);
-    return await app.close();
+    return await app.cleanClose();
   });
 });

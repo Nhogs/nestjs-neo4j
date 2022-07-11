@@ -1,7 +1,7 @@
-import { ConstraintKey, Node } from '../../../../../lib';
+import { NodeKey, Node } from '../../../../../lib';
 
 @Node({ label: 'Company' })
 export class CompanyDto {
-  @ConstraintKey()
+  @NodeKey()
   name: string;
 }

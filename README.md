@@ -7,7 +7,7 @@
 [Neo4j](https://neo4j.com/) module for [Nest.js](https://github.com/nestjs/nest).
 
 [![e2e-test](https://github.com/nhogs/nestjs-neo4j/actions/workflows/e2e-test.yml/badge.svg)](https://github.com/Nhogs/nestjs-neo4j/actions/workflows/e2e-test.yml)
-[![Docker-version](https://img.shields.io/badge/E2e%20tests%20on-neo4j%3A4.4.8--enterprise-blue?logo=docker)](https://hub.docker.com/layers/neo4j/library/neo4j/4.4.8-enterprise/images/sha256-c6e315b42b260c81177c7ae5645e4fec5be7b0c9febada7d38df8cd698cd1a3b?context=explore)
+[![Docker-tested-version](https://img.shields.io/badge/E2e%20tests%20on-neo4j%3A4.4.8--enterprise-blue?logo=docker)](https://hub.docker.com/layers/neo4j/library/neo4j/4.4.8-enterprise/images/sha256-c6e315b42b260c81177c7ae5645e4fec5be7b0c9febada7d38df8cd698cd1a3b?context=explore)
 [![Maintainability](https://api.codeclimate.com/v1/badges/2de17798cf9b4d9cfd83/maintainability)](https://codeclimate.com/github/Nhogs/nestjs-neo4j/maintainability)
 [![Test Coverage](https://api.codeclimate.com/v1/badges/2de17798cf9b4d9cfd83/test_coverage)](https://codeclimate.com/github/Nhogs/nestjs-neo4j/test_coverage)
 
@@ -17,21 +17,10 @@
 [![npm peer dependency version neo4j-driver)](https://img.shields.io/npm/dependency-version/@nhogs/nestjs-neo4j/peer/neo4j-driver?label=neo4j-driver&logo=neo4j)](https://github.com/neo4j/neo4j-javascript-driver)
 
 ## Installation
-
+![npm](https://img.shields.io/npm/v/@nhogs/nestjs-neo4j?logo=npm)
 ```bash
 $ npm i --save @nhogs/nestjs-neo4j
 ```
-
-## Table Of Content:
-
-- [Usage](#usage)
-  - [In static module definition:](#in-static-module-definition)
-  - [In async module definition:](#in-async-module-definition)
-  - [Use in service:](#use-in-service)
-  - [Run with reactive session](#run-with-reactive-session)
-  - [Define constraints with decorators:](#define-constraints-with-decorators)
-  - [Extends Neo4jModelService helpers to get CRUD methods for node or relationships:](#extends-neo4jmodelservice-helpers-to-get-crud-methods-for-node-or-relationships)
-    - [Examples:](#examples)
 
 ## Usage
 
@@ -82,9 +71,54 @@ export class AppModule {}
 export class AppAsyncModule {}
 ```
 
-### Use in service:
+### [🔗 Neo4jService](/lib/service/neo4j.service.ts) :
 
 ```typescript
+@Injectable()
+/** See https://neo4j.com/docs/api/javascript-driver/current/ for details ...*/
+export class Neo4jService implements OnApplicationShutdown {
+  constructor(
+    @Inject(NEO4J_CONFIG) private readonly config: Neo4jConfig,
+    @Inject(NEO4J_DRIVER) private readonly driver: Driver,
+  ) {}
+
+  /** Verifies connectivity of this driver by trying to open a connection with the provided driver options...*/
+  verifyConnectivity(options?: { database?: string }): Promise<ServerInfo> {...}
+
+  /** Regular Session. ...*/
+  getSession(options?: SessionOptions): Session {...}
+
+  /** Reactive session. ...*/
+  getRxSession(options?: SessionOptions): RxSession {...}
+
+  /** Run Cypher query in regular session and close the session after getting results. ...*/
+  run(
+    query: Query,
+    sessionOptions?: SessionOptions,
+    transactionConfig?: TransactionConfig,
+  ): Promise<QueryResult> {...}
+
+  /** Run Cypher query in reactive session. ...*/
+  rxRun(
+    query: Query,
+    sessionOptions?: SessionOptions,
+    transactionConfig?: TransactionConfig,
+  ): RxResult {...}
+
+  /** Returns constraints as runnable Cypher queries defined with decorators on models. ...*/
+  getCypherConstraints(label?: string): string[] {...}
+
+  onApplicationShutdown() {
+    return this.driver.close();
+  }
+}
+```
+
+```typescript
+/**
+ * Cat Service example 
+ */
+
 @Injectable()
 export class CatService {
   constructor(private readonly neo4jService: Neo4jService) {}
@@ -129,57 +163,56 @@ neo4jService
   });
 ```
 
-### Define constraints with decorators
+### Define constraints with decorators on Dto
+https://neo4j.com/docs/cypher-manual/current/constraints/
 
-- Unique node property constraints
-- Node property existence constraints
-- Relationship property existence constraints
-- Node key constraints
+- @NodeKey():
+  - Node key constraints
+- @Unique():
+  - Unique node property constraints
+- @NotNull():
+  - Node property existence constraints
+  - Relationship property existence constraints
 
-[🔗 Source code](/lib/decorator/constraint.decorator.ts)
+[🔗 Constraint decorators - source code](/lib/decorator/constraint.decorator.ts)
 
 ```typescript
-/** 
- * Person Example
- */
 @Node({ label: 'Person' })
 export class PersonDto {
-  @ConstraintKey({
-    name: 'person_node_key',
-    additionalKeys: ['firstname'],
-    ifNotExists: true,
-  })
+  @NodeKey({ additionalKeys: ['firstname'] })
   name: string;
 
-  @ConstraintNotNull({
-    ifNotExists: true,
-  })
+  @NotNull()
   firstname: string;
 
-  @ConstraintUnique({
-    name: 'surname_is_unique',
-    ifNotExists: true,
-  })
+  @NotNull()
+  @Unique()
   surname: string;
 
-  @ConstraintNotNull({
-    name: 'person_name_exists',
-    ifNotExists: true,
-  })
+  @NotNull()
   age: number;
+}
+
+@Relationship({ type: 'WORK_IN' })
+export class WorkInDto {
+  @NotNull()
+  since: Date;
 }
 ```
 
 Will generate the following constraints:
 
 ```cypher
-CREATE CONSTRAINT `person_node_key` IF NOT EXISTS FOR (p:`Person`) REQUIRE (p.`name`, p.`firstname`) IS NODE KEY;
-CREATE CONSTRAINT IF NOT EXISTS FOR (p:`Person`) REQUIRE p.`firstname` IS NOT NULL;
-CREATE CONSTRAINT `surname_is_unique` IF NOT EXISTS FOR (p:`Person`) REQUIRE p.`surname` IS UNIQUE;
-CREATE CONSTRAINT `person_name_exists` IF NOT EXISTS FOR (p:`Person`) REQUIRE p.`age` IS NOT NULL;
+CREATE CONSTRAINT `person_name_key` IF NOT EXISTS FOR (p:`Person`) REQUIRE (p.`name`, p.`firstname`) IS NODE KEY
+CREATE CONSTRAINT `person_firstname_exists` IF NOT EXISTS FOR (p:`Person`) REQUIRE p.`firstname` IS NOT NULL
+CREATE CONSTRAINT `person_surname_unique` IF NOT EXISTS FOR (p:`Person`) REQUIRE p.`surname` IS UNIQUE
+CREATE CONSTRAINT `person_surname_exists` IF NOT EXISTS FOR (p:`Person`) REQUIRE p.`surname` IS NOT NULL
+CREATE CONSTRAINT `person_age_exists` IF NOT EXISTS FOR (p:`Person`) REQUIRE p.`age` IS NOT NULL
+
+CREATE CONSTRAINT `work_in_since_exists` IF NOT EXISTS FOR ()-[p:`WORK_IN`]-() REQUIRE p.`since` IS NOT NULL
 ```
 
-### Extends Neo4jModelService helpers to get CRUD methods for node or relationships:
+### Extends Neo4j Model Services helpers to get basic CRUD methods for node or relationships:
 
 ```mermaid
 classDiagram
@@ -203,9 +236,35 @@ See source code for more details:
 - [🔗 Neo4jNodeModelService](lib/service/neo4j.node.model.service.ts)
 - [🔗 Neo4jRelationshipModelService](lib/service/neo4j.relationship.model.service.ts)
 
+```typescript
+export abstract class Neo4jNodeModelService<T> extends Neo4jModelService<T>{
+  async create(props: Partial<T>): Promise<T>{...}
+  async merge(props: Partial<T>): Promise<T>{...}
+  async update(match: Partial<T>, update: Partial<T>, mutate = true): Promise<T>{...}
+  async delete(props: Partial<T>): Promise<T[]>{...}
+  async findAll(params?: {
+    skip?: number;limit?: number;orderBy?: string; descending?: boolean;
+  }): Promise<T[]>{...}
+  async findBy(params: {
+    props: Partial<T>; skip?: number; limit?: number;  orderBy?: string; descending?: boolean;
+  }): Promise<T[]>{...}
+}
+
+export abstract class Neo4jRelationshipModelService<R> extends Neo4jModelService<R> {
+  async create<F, T>(
+          props: Partial<R>,
+          fromProps: Partial<F>,
+          toProps: Partial<T>,
+          fromService: Neo4jNodeModelService<F>,
+          toService: Neo4jNodeModelService<T>,
+          merge = false,
+  ): Promise<R[]>{...}
+}
+```
+
 #### Examples:
 
-Look at [🔗 E2e tests usage](spec) for more details
+Look at [🔗 E2e tests usage](spec/e2e) for more details
 
 ```typescript
 /**
@@ -219,13 +278,13 @@ export class CatsService extends Neo4jNodeModelService<Cat> {
   }
 
   label = 'Cat';
+  logger = undefined;
 
   fromNeo4j(model: Record<string, any>): Cat {
-    return {
+    return super.fromNeo4j({
       ...model,
       age: model.age.toNumber(),
-      created: model.created.toString(),
-    } as Cat;
+    });
   }
 
   toNeo4j(cat: Record<string, any>): Record<string, any> {
@@ -235,7 +294,7 @@ export class CatsService extends Neo4jNodeModelService<Cat> {
       result.age = int(result.age);
     }
 
-    return result;
+    return super.toNeo4j(result);
   }
 
   // Add a property named 'created' with timestamp on creation
@@ -265,6 +324,41 @@ export class CatsService extends Neo4jNodeModelService<Cat> {
       skip: params.skip,
       limit: params.limit,
     });
+  }
+}
+```
+
+```typescript
+/**
+ * WORK_IN Controller example
+ */
+
+@Controller('WORK_IN')
+export class WorkInController {
+  constructor(
+    private readonly personService: PersonService,
+    private readonly workInService: WorkInService,
+    private readonly companyService: CompanyService,
+  ) {}
+
+  @Post('/:from/:to')
+  async workIn(
+    @Param('from') from: string,
+    @Param('to') to: string,
+    @Body() workInDto: WorkInDto,
+  ): Promise<WorkInDto[]> {
+    return this.workInService.create(
+      workInDto,
+      { name: from },
+      { name: to },
+      this.personService,
+      this.companyService,
+    );
+  }
+
+  @Get()
+  async findAll(): Promise<[PersonDto, WorkInDto, CompanyDto][]> {
+    return this.workInService.findAll();
   }
 }
 ```

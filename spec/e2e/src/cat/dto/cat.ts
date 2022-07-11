@@ -1,16 +1,16 @@
-import { ConstraintKey, ConstraintNotNull, Node } from '../../../../../lib';
+import { Node, NodeKey, NotNull } from '../../../../../lib';
 
 @Node()
 export class Cat {
-  @ConstraintKey()
-  readonly name: string;
+  @NodeKey()
+  name: string;
 
-  @ConstraintNotNull()
-  readonly age: number;
+  @NotNull()
+  age: number;
 
-  @ConstraintNotNull()
-  readonly breed: string;
+  @NotNull()
+  breed: string;
 
-  @ConstraintNotNull()
-  readonly created: string;
+  @NotNull()
+  created: string;
 }

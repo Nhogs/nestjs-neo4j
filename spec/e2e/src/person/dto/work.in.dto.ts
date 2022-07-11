@@ -1,7 +1,7 @@
-import { ConstraintNotNull, Relationship } from '../../../../../lib';
+import { NotNull, Relationship } from '../../../../../lib';
 
-@Relationship({ name: 'WORK_IN' })
+@Relationship({ type: 'WORK_IN' })
 export class WorkInDto {
-  @ConstraintNotNull()
+  @NotNull()
   since: Date;
 }
