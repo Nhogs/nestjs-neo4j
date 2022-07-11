@@ -225,9 +225,14 @@ class Neo4jRelationshipModelService~R~
 Neo4jModelService : string label*
 Neo4jModelService : runCypherConstraints()
 Neo4jModelService <|--Neo4jNodeModelService
-Neo4jNodeModelService : nodeCRUDFunctions()
+Neo4jNodeModelService : create()
+Neo4jNodeModelService : merge()
+Neo4jNodeModelService : update()
+Neo4jNodeModelService : delete()
+Neo4jNodeModelService : findAll()
+Neo4jNodeModelService : findBy()
 Neo4jModelService <|--Neo4jRelationshipModelService
-Neo4jRelationshipModelService : relationshipCRUDFunctions()
+Neo4jRelationshipModelService : create()
 ```
 
 See source code for more details:
