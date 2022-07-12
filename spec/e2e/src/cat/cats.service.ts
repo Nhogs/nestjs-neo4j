@@ -51,6 +51,6 @@ export class CatsService extends Neo4jNodeModelService<Cat> {
       limit?: number;
     },
   ) {
-    return super.searchBy('name', name.split(' '), options);
+    return super.searchBy('name', name, options);
   }
 }

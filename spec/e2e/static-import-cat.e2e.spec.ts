@@ -354,7 +354,7 @@ describe('Cats E2e', () => {
   });
 
   it(`should searchBy query`, async () => {
-    return expect(catsService.searchBy('name', ['psy']).query)
+    return expect(catsService.searchBy('name', 'psy').query)
       .toMatchInlineSnapshot(`
               Object {
                 "cypher": "MATCH (\`n\`:\`Cat\`) WITH n, split(n.\`name\`, ' ') as words
@@ -390,18 +390,25 @@ describe('Cats E2e', () => {
       .run();
 
     return expect(
-      (await catsService.searchByName('psy').run()).map((t) => ({
-        ...t,
-        created: 'x',
-      })),
+      (await catsService.searchByName('psy').run()).map((t) => [
+        {
+          ...t[0],
+          created: 'x',
+        },
+
+        t[1],
+      ]),
     ).toMatchInlineSnapshot(`
               Array [
-                Object {
-                  "age": 5,
-                  "breed": "Maine Coon",
-                  "created": "x",
-                  "name": "Gypsy",
-                },
+                Array [
+                  Object {
+                    "age": 5,
+                    "breed": "Maine Coon",
+                    "created": "x",
+                    "name": "Gypsy",
+                  },
+                  2,
+                ],
               ]
             `);
   });

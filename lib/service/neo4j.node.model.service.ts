@@ -23,7 +23,9 @@ export abstract class Neo4jNodeModelService<T> extends Neo4jModelService<T> {
     const props = this.toNeo4j(properties);
 
     const CREATE = `CREATE ${NODE('n', this.label)}`;
-    const SET = ` SET n=$props${TIMESTAMP('n', this.timestamp, ', ')}`;
+    const SET = ` SET n=$props${
+      props[this.timestamp] ? '' : TIMESTAMP('n', this.timestamp, ', ')
+    }`;
     const RETURN = options?.returns ? RETURN_PROPERTIES('n', 'created') : ``;
 
     const query: Query<T> = {
@@ -75,7 +77,7 @@ export abstract class Neo4jNodeModelService<T> extends Neo4jModelService<T> {
   update(
     match: Partial<T>,
     update: Partial<T>,
-    options: { mutate?: boolean; returns?: boolean; as?: string } = {
+    options: { mutate?: boolean; returns?: boolean } = {
       mutate: true,
       returns: true,
     },
@@ -211,7 +213,7 @@ export abstract class Neo4jNodeModelService<T> extends Neo4jModelService<T> {
 
   searchBy(
     prop: keyof T,
-    terms: string[],
+    search: string,
     options: {
       skip?: number;
       limit?: number;
@@ -220,6 +222,8 @@ export abstract class Neo4jNodeModelService<T> extends Neo4jModelService<T> {
       limit: 100,
     },
   ) {
+    const terms = search.replace(/\s+/g, ' ').trim().split(' ');
+
     const MATCH = `MATCH ${NODE('n', this.label)}`;
     const WITH = ` WITH n, split(n.\`${String(prop)}\`, ' ') as words`;
 
@@ -244,7 +248,7 @@ export abstract class Neo4jNodeModelService<T> extends Neo4jModelService<T> {
       run: async () => {
         const res = await this._run(query);
         return res.map((r) => {
-          return this.fromNeo4j(r.matched);
+          return [this.fromNeo4j(r.matched), r.score.toNumber()];
         });
       },
     };
