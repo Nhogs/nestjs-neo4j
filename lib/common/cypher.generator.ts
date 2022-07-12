@@ -20,6 +20,10 @@ export function NODE(
   })`;
 }
 
+export function RETURN_PROPERTIES(n: string, alias: string) {
+  return ` RETURN properties(\`${n}\`) AS \`${alias}\``;
+}
+
 export function TIMESTAMP(n: string, prop?: string, prefix?: string) {
   return prop
     ? `${prefix ? prefix : ''}\`${n}\`.\`${prop}\` = timestamp()`

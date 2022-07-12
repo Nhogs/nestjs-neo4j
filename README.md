@@ -17,7 +17,9 @@
 [![npm peer dependency version neo4j-driver)](https://img.shields.io/npm/dependency-version/@nhogs/nestjs-neo4j/peer/neo4j-driver?label=neo4j-driver&logo=neo4j)](https://github.com/neo4j/neo4j-javascript-driver)
 
 ## Installation
+
 ![npm](https://img.shields.io/npm/v/@nhogs/nestjs-neo4j?logo=npm)
+
 ```bash
 $ npm i --save @nhogs/nestjs-neo4j
 ```
@@ -116,7 +118,7 @@ export class Neo4jService implements OnApplicationShutdown {
 
 ```typescript
 /**
- * Cat Service example 
+ * Cat Service example
  */
 
 @Injectable()
@@ -164,6 +166,7 @@ neo4jService
 ```
 
 ### Define constraints with decorators on Dto
+
 https://neo4j.com/docs/cypher-manual/current/constraints/
 
 - @NodeKey():
@@ -241,32 +244,6 @@ See source code for more details:
 - [🔗 Neo4jNodeModelService](lib/service/neo4j.node.model.service.ts)
 - [🔗 Neo4jRelationshipModelService](lib/service/neo4j.relationship.model.service.ts)
 
-```typescript
-export abstract class Neo4jNodeModelService<T> extends Neo4jModelService<T>{
-  async create(props: Partial<T>): Promise<T>{...}
-  async merge(props: Partial<T>): Promise<T>{...}
-  async update(match: Partial<T>, update: Partial<T>, mutate = true): Promise<T>{...}
-  async delete(props: Partial<T>): Promise<T[]>{...}
-  async findAll(params?: {
-    skip?: number;limit?: number;orderBy?: string; descending?: boolean;
-  }): Promise<T[]>{...}
-  async findBy(params: {
-    props: Partial<T>; skip?: number; limit?: number;  orderBy?: string; descending?: boolean;
-  }): Promise<T[]>{...}
-}
-
-export abstract class Neo4jRelationshipModelService<R> extends Neo4jModelService<R> {
-  async create<F, T>(
-          props: Partial<R>,
-          fromProps: Partial<F>,
-          toProps: Partial<T>,
-          fromService: Neo4jNodeModelService<F>,
-          toService: Neo4jNodeModelService<T>,
-          merge = false,
-  ): Promise<R[]>{...}
-}
-```
-
 #### Examples:
 
 Look at [🔗 E2e tests usage](spec/e2e) for more details
@@ -305,30 +282,26 @@ export class CatsService extends Neo4jNodeModelService<Cat> {
   // Add a property named 'created' with timestamp on creation
   protected timestamp = 'created';
 
-  async findByName(params: {
-    name: string;
-    skip?: number;
-    limit?: number;
-    orderBy?: string;
-    descending?: boolean;
-  }): Promise<Cat[]> {
-    return super.findBy({
-      props: { name: params.name },
-      ...params,
-    });
+  findByName(
+    name: string,
+    options?: {
+      skip?: number;
+      limit?: number;
+      orderBy?: string;
+      descending?: boolean;
+    },
+  ) {
+    return super.findBy({ name }, options);
   }
 
-  async searchByName(params: {
-    search: string;
-    skip?: number;
-    limit?: number;
-  }): Promise<[Cat, number][]> {
-    return super.searchBy({
-      prop: 'name',
-      terms: params.search.split(' '),
-      skip: params.skip,
-      limit: params.limit,
-    });
+  searchByName(
+    name: string,
+    options?: {
+      skip?: number;
+      limit?: number;
+    },
+  ) {
+    return super.searchBy('name', name.split(' '), options);
   }
 }
 ```
@@ -351,14 +324,16 @@ export class WorkInController {
     @Param('from') from: string,
     @Param('to') to: string,
     @Body() workInDto: WorkInDto,
-  ): Promise<WorkInDto[]> {
-    return this.workInService.create(
-      workInDto,
-      { name: from },
-      { name: to },
-      this.personService,
-      this.companyService,
-    );
+  ): Promise<[PersonDto, WorkInDto, CompanyDto][]> {
+    return this.workInService
+      .create(
+        workInDto,
+        { name: from },
+        { name: to },
+        this.personService,
+        this.companyService,
+      )
+      .run();
   }
 
   @Get()

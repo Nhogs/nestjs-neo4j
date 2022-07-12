@@ -26,20 +26,18 @@ export class PersonService extends Neo4jNodeModelService<PersonDto> {
   }): Promise<void> {
     const session = this.neo4jService.getSession({ write: true });
     const tx = session.beginTransaction();
-    this.createInTx(tx, props.person);
-    this.companyService.createInTx(tx, props.company);
-    this.workInService.createInTx(
-      tx,
-      {},
-      props.person,
-      props.company,
-      this,
-      this.companyService,
-    );
+    this.create(props.person, { returns: false }).runTx(tx);
+    this.companyService.create(props.company, { returns: false }).runTx(tx);
+    this.workInService
+      .create({}, props.person, props.company, this, this.companyService, {
+        returns: false,
+      })
+      .runTx(tx);
     await tx.commit();
+    return tx.close();
   }
 
-  async findAll(): Promise<PersonDto[]> {
+  findAll() {
     return super.findAll({ orderBy: 'name' });
   }
 }

@@ -1,236 +1,252 @@
-import { Transaction } from 'neo4j-driver';
-import { Query } from '../interface';
 import { Neo4jModelService } from './neo4j.model.service';
 import {
+  neo4jSkipLimit,
   NODE,
+  ORDER_BY,
+  RETURN_PROPERTIES,
   SKIP_LIMIT,
   TIMESTAMP,
-  neo4jSkipLimit,
-  ORDER_BY,
 } from '../common';
+import { Transaction } from 'neo4j-driver';
+import { Query } from '../interface';
 
 /**
  * Helper class to generate Node model service using Neo4j
  */
 export abstract class Neo4jNodeModelService<T> extends Neo4jModelService<T> {
-  createQuery(properties: Partial<T>, returns = true): Query {
+  create(
+    properties: Partial<T>,
+    options: { returns?: boolean } = {
+      returns: true,
+    },
+  ) {
     const props = this.toNeo4j(properties);
 
     const CREATE = `CREATE ${NODE('n', this.label)}`;
     const SET = ` SET n=$props${TIMESTAMP('n', this.timestamp, ', ')}`;
-    const RETURN = `${returns ? ` RETURN properties(n) AS created` : ''}`;
+    const RETURN = options?.returns ? RETURN_PROPERTIES('n', 'created') : ``;
 
-    return {
+    const query: Query<T> = {
       cypher: `${CREATE}${SET}${RETURN}`,
       parameters: { props },
     };
+
+    return {
+      query,
+      runTx: (tx?: Transaction) => tx.run(query.cypher, query.parameters),
+      run: async () => {
+        const res = await this._run(query, { write: true });
+        return res.map((r) => {
+          return this.fromNeo4j(r.created);
+        })[0];
+      },
+    };
   }
 
-  mergeQuery(properties: Partial<T>, returns = true): Query {
+  merge(
+    properties: Partial<T>,
+    options: { returns?: boolean } = {
+      returns: true,
+    },
+  ) {
     const props = this.toNeo4j(properties);
 
     const MERGE = `MERGE ${NODE('n', this.label, { props })}`;
     const SET = `${TIMESTAMP('n', this.timestamp, ' ON CREATE SET ')}`;
-    const RETURN = `${returns ? ` RETURN properties(n) AS merged` : ''}`;
+    const RETURN = options?.returns ? RETURN_PROPERTIES('n', 'merged') : ``;
 
-    return {
+    const query = {
       cypher: `${MERGE}${SET}${RETURN}`,
       parameters: { props },
     };
+
+    return {
+      query,
+      runTx: (tx?: Transaction) => tx.run(query.cypher, query.parameters),
+      run: async () => {
+        const res = await this._run(query, { write: true });
+        return res.map((r) => {
+          return this.fromNeo4j(r.merged);
+        });
+      },
+    };
   }
 
-  updateQuery(
+  update(
     match: Partial<T>,
     update: Partial<T>,
-    mutate = true,
-    returns = true,
-  ): Query {
+    options: { mutate?: boolean; returns?: boolean; as?: string } = {
+      mutate: true,
+      returns: true,
+    },
+  ) {
     const props = this.toNeo4j(match);
     const updates = this.toNeo4j(update);
 
     const MATCH = `MATCH ${NODE('n', this.label, { props })}`;
-    const SET = ` SET n ${mutate ? '+' : ''}= $updates`;
-    const RETURN = `${returns ? ` RETURN properties(n) AS updated` : ''}`;
+    const SET = ` SET n ${options?.mutate ? '+' : ''}= $updates`;
+    const RETURN = options?.returns ? RETURN_PROPERTIES('n', 'updated') : ``;
 
-    return {
+    const query = {
       cypher: `${MATCH}${SET}${RETURN}`,
       parameters: { props, updates },
     };
+
+    return {
+      query,
+      runTx: (tx?: Transaction) => tx.run(query.cypher, query.parameters),
+      run: async () => {
+        const res = await this._run(query, { write: true });
+        return res.map((r) => {
+          return this.fromNeo4j(r.updated);
+        });
+      },
+    };
   }
 
-  deleteQuery(properties: Partial<T>, returns = true): Query {
+  delete(
+    properties: Partial<T>,
+    options: { returns?: boolean } = {
+      returns: true,
+    },
+  ) {
     const props = this.toNeo4j(properties);
 
     const MATCH = `MATCH ${NODE('n', this.label, { props })}`;
-    const WITH = ` WITH n, properties(n) AS deleted`;
+    const WITH = options?.returns
+      ? ` WITH n, properties(n) AS \`deleted\``
+      : ``;
     const DELETE = ` DELETE n`;
-    const RETURN = `${returns ? ` RETURN deleted` : ''}`;
+    const RET = options?.returns ? ` RETURN \`deleted\`` : ``;
 
-    return {
-      cypher: `${MATCH}${WITH}${DELETE}${RETURN}`,
+    const query = {
+      cypher: `${MATCH}${WITH}${DELETE}${RET}`,
       parameters: { props },
     };
-  }
-
-  findAllQuery(p?: {
-    skip?: number;
-    limit?: number;
-    orderBy?: string;
-    descending?: boolean;
-  }): Query {
-    const MATCH = `MATCH ${NODE('n', this.label)}`;
-    const RETURN = ` RETURN properties(n) AS matched`;
 
     return {
-      cypher: `${MATCH}${RETURN}${ORDER_BY(
-        'n',
-        p?.orderBy,
-        p?.descending,
-      )}${SKIP_LIMIT(p)}`,
-      parameters: neo4jSkipLimit(p),
+      query,
+      runTx: (tx?: Transaction) => tx.run(query.cypher, query.parameters),
+      run: async () => {
+        const res = await this._run(query, { write: true });
+        return res.map((r) => {
+          return this.fromNeo4j(r.deleted);
+        });
+      },
     };
   }
 
-  findByQuery(p: {
-    props: Partial<T>;
-    skip?: number;
-    limit?: number;
-    orderBy?: string;
-    descending?: boolean;
-  }): Query {
-    const props = this.toNeo4j(p.props);
+  findAll(
+    options: {
+      skip?: number;
+      limit?: number;
+      orderBy?: string;
+      descending?: boolean;
+    } = {
+      skip: 0,
+      limit: 100,
+    },
+  ) {
+    const MATCH = `MATCH ${NODE('n', this.label)}`;
+    const RETURN = ` RETURN properties(n) AS \`matched\``;
+
+    const query = {
+      cypher: `${MATCH}${RETURN}${ORDER_BY(
+        'n',
+        options?.orderBy,
+        options?.descending,
+      )}${SKIP_LIMIT(options)}`,
+      parameters: neo4jSkipLimit(options),
+    };
+
+    return {
+      query,
+      runTx: (tx?: Transaction) => tx.run(query.cypher, query.parameters),
+      run: async () => {
+        const res = await this._run(query);
+        return res.map((r) => {
+          return this.fromNeo4j(r.matched);
+        });
+      },
+    };
+  }
+
+  findBy(
+    properties: Partial<T>,
+    options: {
+      skip?: number;
+      limit?: number;
+      orderBy?: string;
+      descending?: boolean;
+    } = {
+      skip: 0,
+      limit: 100,
+    },
+  ) {
+    const props = this.toNeo4j(properties);
 
     const MATCH = `MATCH ${NODE('n', this.label, { props })}`;
-    const RETURN = ` RETURN properties(n) AS matched`;
+    const RETURN = ` RETURN properties(\`n\`) AS \`matched\``;
 
-    return {
+    const query = {
       cypher: `${MATCH}${RETURN}${ORDER_BY(
         'n',
-        p?.orderBy,
-        p?.descending,
+        options?.orderBy,
+        options?.descending,
       )}${SKIP_LIMIT(props)}`,
-      parameters: { props, ...neo4jSkipLimit(p) },
+      parameters: { props, ...neo4jSkipLimit(options) },
+    };
+
+    return {
+      query,
+      runTx: (tx?: Transaction) => tx.run(query.cypher, query.parameters),
+      run: async () => {
+        const res = await this._run(query);
+        return res.map((r) => {
+          return this.fromNeo4j(r.matched);
+        });
+      },
     };
   }
 
-  searchByQuery(params: {
-    prop: keyof T;
-    terms: string[];
-    skip?: number;
-    limit?: number;
-  }): Query {
+  searchBy(
+    prop: keyof T,
+    terms: string[],
+    options: {
+      skip?: number;
+      limit?: number;
+    } = {
+      skip: 0,
+      limit: 100,
+    },
+  ) {
     const MATCH = `MATCH ${NODE('n', this.label)}`;
-    const WITH = ` WITH n, split(n.\`${String(params.prop)}\`, ' ') as words`;
+    const WITH = ` WITH n, split(n.\`${String(prop)}\`, ' ') as words`;
 
-    return {
+    const query = {
       cypher: `${MATCH}${WITH}
     WHERE ANY (term IN $terms WHERE ANY(word IN words WHERE word CONTAINS term))
     WITH n, words, 
     CASE WHEN apoc.text.join($terms, '') = apoc.text.join(words, '') THEN 100
     ELSE reduce(s = 0, st IN $terms | s + reduce(s2 = 0, w IN words | CASE WHEN (w = st) THEN (s2 + 4) ELSE CASE WHEN (w CONTAINS st) THEN (s2 +2) ELSE (s2) END END)) END AS score 
     ORDER BY score DESC${SKIP_LIMIT(
-      params,
-    )} RETURN properties(n) as matched, score`,
+      options,
+    )} RETURN properties(n) as \`matched\`, score`,
       parameters: {
-        terms: params.terms,
-        ...neo4jSkipLimit(params),
+        terms: terms,
+        ...neo4jSkipLimit(options),
       },
     };
-  }
 
-  async create(props: Partial<T>): Promise<T> {
-    const res = await this._run(this.createQuery(props), {
-      write: true,
-    });
-    return res.length > 0 ? this.fromNeo4j(res[0].created) : undefined;
-  }
-
-  createInTx(tx: Transaction, props: Partial<T>): Transaction {
-    const query = this.createQuery(props, false);
-    tx.run(query.cypher, query.parameters);
-    return tx;
-  }
-
-  async merge(props: Partial<T>): Promise<T> {
-    const res = await this._run(this.mergeQuery(props), {
-      write: true,
-    });
-    return res.length > 0 ? this.fromNeo4j(res[0].merged) : undefined;
-  }
-
-  mergeInTx(tx: Transaction, props: Partial<T>): Transaction {
-    const query = this.mergeQuery(props);
-    tx.run(query.cypher, query.parameters);
-    return tx;
-  }
-
-  async update(
-    match: Partial<T>,
-    update: Partial<T>,
-    mutate = true,
-  ): Promise<T> {
-    const res = await this._run(this.updateQuery(match, update, mutate), {
-      write: true,
-    });
-    return res.length > 0 ? this.fromNeo4j(res[0].updated) : undefined;
-  }
-
-  updateInTx(
-    tx: Transaction,
-    match: Partial<T>,
-    update: Partial<T>,
-    mutate = true,
-  ): Transaction {
-    const query = this.updateQuery(match, update, mutate, false);
-    tx.run(query.cypher, query.parameters);
-    return tx;
-  }
-
-  async delete(props: Partial<T>): Promise<T[]> {
-    return (
-      await this._run(this.deleteQuery(props), {
-        write: true,
-      })
-    ).map((r) => this.fromNeo4j(r.deleted));
-  }
-
-  deleteInTx(tx: Transaction, props: Partial<T>): Transaction {
-    const query = this.deleteQuery(props, false);
-    tx.run(query.cypher, query.parameters);
-    return tx;
-  }
-
-  async findAll(params?: {
-    skip?: number;
-    limit?: number;
-    orderBy?: string;
-    descending?: boolean;
-  }): Promise<T[]> {
-    return (await this._run(this.findAllQuery(params))).map((r) =>
-      this.fromNeo4j(r.matched),
-    );
-  }
-
-  async findBy(params: {
-    props: Partial<T>;
-    skip?: number;
-    limit?: number;
-    orderBy?: string;
-    descending?: boolean;
-  }): Promise<T[]> {
-    return (await this._run(this.findByQuery(params))).map((r) =>
-      this.fromNeo4j(r.matched),
-    );
-  }
-
-  async searchBy(params: {
-    prop: keyof T;
-    terms: string[];
-    skip?: number;
-    limit?: number;
-  }): Promise<[T, number][]> {
-    return (await this._run(this.searchByQuery(params))).map((r) => {
-      return [this.fromNeo4j(r.matched), r.score.toInt()];
-    });
+    return {
+      query,
+      runTx: (tx?: Transaction) => tx.run(query.cypher, query.parameters),
+      run: async () => {
+        const res = await this._run(query);
+        return res.map((r) => {
+          return this.fromNeo4j(r.matched);
+        });
+      },
+    };
   }
 }

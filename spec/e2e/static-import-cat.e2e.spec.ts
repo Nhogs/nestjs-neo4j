@@ -47,14 +47,14 @@ describe('Cats E2e', () => {
 
   it(`should create Cat query`, async () => {
     expect(
-      catsService.createQuery({
+      catsService.create({
         name: 'Gypsy',
         age: 5,
         breed: 'Maine Coon',
-      }),
+      }).query,
     ).toMatchInlineSnapshot(`
       Object {
-        "cypher": "CREATE (\`n\`:\`Cat\`) SET n=$props, \`n\`.\`created\` = timestamp() RETURN properties(n) AS created",
+        "cypher": "CREATE (\`n\`:\`Cat\`) SET n=$props, \`n\`.\`created\` = timestamp() RETURN properties(\`n\`) AS \`created\`",
         "parameters": Object {
           "props": Object {
             "age": Integer {
@@ -71,11 +71,13 @@ describe('Cats E2e', () => {
 
   it(`should create Cat`, async () => {
     expect(
-      await catsService.create({
-        name: 'Gypsy',
-        age: 5,
-        breed: 'Maine Coon',
-      }),
+      await catsService
+        .create({
+          name: 'Gypsy',
+          age: 5,
+          breed: 'Maine Coon',
+        })
+        .run(),
     ).toMatchInlineSnapshot(
       {
         created: expect.any(Date),
@@ -90,7 +92,7 @@ describe('Cats E2e', () => {
     `,
     );
 
-    return expect(await catsService.findAll()).toMatchInlineSnapshot(
+    return expect(await catsService.findAll().run()).toMatchInlineSnapshot(
       [
         {
           created: expect.any(Date),
@@ -110,10 +112,10 @@ describe('Cats E2e', () => {
   });
 
   it(`should update Cat query`, async () => {
-    expect(catsService.updateQuery({ name: 'Gypsy' }, { name: 'Curly' }))
+    expect(catsService.update({ name: 'Gypsy' }, { name: 'Curly' }).query)
       .toMatchInlineSnapshot(`
       Object {
-        "cypher": "MATCH (\`n\`:\`Cat\` {\`name\`: $\`props\`.\`name\`}) SET n += $updates RETURN properties(n) AS updated",
+        "cypher": "MATCH (\`n\`:\`Cat\` {\`name\`: $\`props\`.\`name\`}) SET n += $updates RETURN properties(\`n\`) AS \`updated\`",
         "parameters": Object {
           "props": Object {
             "name": "Gypsy",
@@ -127,13 +129,16 @@ describe('Cats E2e', () => {
   });
 
   it(`should update Cat`, async () => {
-    await catsService.create({
-      name: 'Gypsy',
-      age: 5,
-      breed: 'Maine Coon',
-    });
+    await catsService
+      .create({
+        name: 'Gypsy',
+        age: 5,
+        breed: 'Maine Coon',
+      })
+      .run();
+
     expect(
-      await catsService.update({ name: 'Gypsy' }, { name: 'Curly' }),
+      (await catsService.update({ name: 'Gypsy' }, { name: 'Curly' }).run())[0],
     ).toMatchInlineSnapshot(
       {
         created: expect.any(Date),
@@ -151,14 +156,14 @@ describe('Cats E2e', () => {
 
   it(`should merge Cat query`, async () => {
     expect(
-      catsService.mergeQuery({
+      catsService.merge({
         name: 'Gypsy',
         age: 5,
         breed: 'Maine Coon',
-      }),
+      }).query,
     ).toMatchInlineSnapshot(`
       Object {
-        "cypher": "MERGE (\`n\`:\`Cat\` {\`name\`: $\`props\`.\`name\`, \`age\`: $\`props\`.\`age\`, \`breed\`: $\`props\`.\`breed\`}) ON CREATE SET \`n\`.\`created\` = timestamp() RETURN properties(n) AS merged",
+        "cypher": "MERGE (\`n\`:\`Cat\` {\`name\`: $\`props\`.\`name\`, \`age\`: $\`props\`.\`age\`, \`breed\`: $\`props\`.\`breed\`}) ON CREATE SET \`n\`.\`created\` = timestamp() RETURN properties(\`n\`) AS \`merged\`",
         "parameters": Object {
           "props": Object {
             "age": Integer {
@@ -175,11 +180,15 @@ describe('Cats E2e', () => {
 
   it(`should merge Cat`, async () => {
     expect(
-      await catsService.merge({
-        name: 'Gypsy',
-        age: 5,
-        breed: 'Maine Coon',
-      }),
+      (
+        await catsService
+          .merge({
+            name: 'Gypsy',
+            age: 5,
+            breed: 'Maine Coon',
+          })
+          .run()
+      )[0],
     ).toMatchInlineSnapshot(
       {
         created: expect.any(Date),
@@ -195,11 +204,15 @@ describe('Cats E2e', () => {
     );
 
     expect(
-      await catsService.merge({
-        name: 'Gypsy',
-        age: 5,
-        breed: 'Maine Coon',
-      }),
+      (
+        await catsService
+          .merge({
+            name: 'Gypsy',
+            age: 5,
+            breed: 'Maine Coon',
+          })
+          .run()
+      )[0],
     ).toMatchInlineSnapshot(
       {
         created: expect.any(Date),
@@ -214,7 +227,7 @@ describe('Cats E2e', () => {
     `,
     );
 
-    return expect(await catsService.findAll()).toMatchInlineSnapshot(
+    return expect(await catsService.findAll().run()).toMatchInlineSnapshot(
       [
         {
           created: expect.any(Date),
@@ -235,12 +248,12 @@ describe('Cats E2e', () => {
 
   it(`should delete Cat query`, async () => {
     expect(
-      catsService.deleteQuery({
+      catsService.delete({
         name: 'Gypsy',
-      }),
+      }).query,
     ).toMatchInlineSnapshot(`
       Object {
-        "cypher": "MATCH (\`n\`:\`Cat\` {\`name\`: $\`props\`.\`name\`}) WITH n, properties(n) AS deleted DELETE n RETURN deleted",
+        "cypher": "MATCH (\`n\`:\`Cat\` {\`name\`: $\`props\`.\`name\`}) WITH n, properties(n) AS \`deleted\` DELETE n RETURN \`deleted\`",
         "parameters": Object {
           "props": Object {
             "name": "Gypsy",
@@ -251,16 +264,20 @@ describe('Cats E2e', () => {
   });
 
   it(`should delete Cat`, async () => {
-    await catsService.create({
-      name: 'Gypsy',
-      age: 5,
-      breed: 'Maine Coon',
-    });
+    await catsService
+      .create({
+        name: 'Gypsy',
+        age: 5,
+        breed: 'Maine Coon',
+      })
+      .run();
 
     expect(
-      await catsService.delete({
-        name: 'Gypsy',
-      }),
+      await catsService
+        .delete({
+          name: 'Gypsy',
+        })
+        .run(),
     ).toMatchInlineSnapshot(
       [
         {
@@ -279,19 +296,27 @@ describe('Cats E2e', () => {
     `,
     );
 
-    return expect(await catsService.findAll()).toMatchInlineSnapshot(
+    return expect(await catsService.findAll().run()).toMatchInlineSnapshot(
       `Array []`,
     );
   });
 
   it(`should findBy query`, async () => {
-    return expect(catsService.findByQuery({ props: { name: 'Gypsy' } }))
+    return expect(catsService.findBy({ name: 'Gypsy' }).query)
       .toMatchInlineSnapshot(`
               Object {
-                "cypher": "MATCH (\`n\`:\`Cat\` {\`name\`: $\`props\`.\`name\`}) RETURN properties(n) AS matched",
+                "cypher": "MATCH (\`n\`:\`Cat\` {\`name\`: $\`props\`.\`name\`}) RETURN properties(\`n\`) AS \`matched\`",
                 "parameters": Object {
+                  "limit": Integer {
+                    "high": 0,
+                    "low": 100,
+                  },
                   "props": Object {
                     "name": "Gypsy",
+                  },
+                  "skip": Integer {
+                    "high": 0,
+                    "low": 0,
                   },
                 },
               }
@@ -299,14 +324,16 @@ describe('Cats E2e', () => {
   });
 
   it(`should findByName`, async () => {
-    await catsService.create({
-      name: 'Gypsy',
-      age: 5,
-      breed: 'Maine Coon',
-    });
+    await catsService
+      .create({
+        name: 'Gypsy',
+        age: 5,
+        breed: 'Maine Coon',
+      })
+      .run();
 
     return expect(
-      await catsService.findByName({ name: 'Gypsy' }),
+      await catsService.findByName('Gypsy').run(),
     ).toMatchInlineSnapshot(
       [
         {
@@ -326,8 +353,8 @@ describe('Cats E2e', () => {
     );
   });
 
-  it(`should searchByQuery query`, async () => {
-    return expect(catsService.searchByQuery({ prop: 'name', terms: ['psy'] }))
+  it(`should searchBy query`, async () => {
+    return expect(catsService.searchBy('name', ['psy']).query)
       .toMatchInlineSnapshot(`
               Object {
                 "cypher": "MATCH (\`n\`:\`Cat\`) WITH n, split(n.\`name\`, ' ') as words
@@ -335,8 +362,16 @@ describe('Cats E2e', () => {
                   WITH n, words, 
                   CASE WHEN apoc.text.join($terms, '') = apoc.text.join(words, '') THEN 100
                   ELSE reduce(s = 0, st IN $terms | s + reduce(s2 = 0, w IN words | CASE WHEN (w = st) THEN (s2 + 4) ELSE CASE WHEN (w CONTAINS st) THEN (s2 +2) ELSE (s2) END END)) END AS score 
-                  ORDER BY score DESC RETURN properties(n) as matched, score",
+                  ORDER BY score DESC SKIP $skip LIMIT $limit RETURN properties(n) as \`matched\`, score",
                 "parameters": Object {
+                  "limit": Integer {
+                    "high": 0,
+                    "low": 100,
+                  },
+                  "skip": Integer {
+                    "high": 0,
+                    "low": 0,
+                  },
                   "terms": Array [
                     "psy",
                   ],
@@ -346,30 +381,29 @@ describe('Cats E2e', () => {
   });
 
   it(`should searchByName`, async () => {
-    await catsService.create({
-      name: 'Gypsy',
-      age: 5,
-      breed: 'Maine Coon',
-    });
+    await catsService
+      .create({
+        name: 'Gypsy',
+        age: 5,
+        breed: 'Maine Coon',
+      })
+      .run();
 
     return expect(
-      (await catsService.searchByName({ search: 'psy' })).map((t) => [
-        { ...t[0], created: 'x' },
-        t[1],
-      ]),
+      (await catsService.searchByName('psy').run()).map((t) => ({
+        ...t,
+        created: 'x',
+      })),
     ).toMatchInlineSnapshot(`
-                    Array [
-                      Array [
-                        Object {
-                          "age": 5,
-                          "breed": "Maine Coon",
-                          "created": "x",
-                          "name": "Gypsy",
-                        },
-                        2,
-                      ],
-                    ]
-                `);
+              Array [
+                Object {
+                  "age": 5,
+                  "breed": "Maine Coon",
+                  "created": "x",
+                  "name": "Gypsy",
+                },
+              ]
+            `);
   });
 
   afterAll(async () => {

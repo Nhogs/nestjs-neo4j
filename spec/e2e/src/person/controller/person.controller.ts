@@ -8,8 +8,8 @@ export class PersonController {
   constructor(private readonly personService: PersonService) {}
 
   @Post()
-  async create(@Body() createPersonDto: PersonDto) {
-    return this.personService.create(createPersonDto);
+  async create(@Body() createPersonDto: PersonDto): Promise<PersonDto> {
+    return this.personService.create(createPersonDto).run();
   }
 
   @Post('company')
@@ -21,6 +21,6 @@ export class PersonController {
 
   @Get()
   async findAll(): Promise<PersonDto[]> {
-    return this.personService.findAll();
+    return this.personService.findAll().run();
   }
 }

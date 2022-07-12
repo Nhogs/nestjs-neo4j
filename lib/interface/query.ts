@@ -1,4 +1,4 @@
-export declare type Query = {
+export declare type Query<T = any> = {
   cypher: string;
   parameters?: Record<string, any>;
 };

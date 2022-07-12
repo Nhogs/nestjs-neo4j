@@ -32,29 +32,25 @@ export class CatsService extends Neo4jNodeModelService<Cat> {
   // Add a property named 'created' with timestamp on creation
   protected timestamp = 'created';
 
-  async findByName(params: {
-    name: string;
-    skip?: number;
-    limit?: number;
-    orderBy?: string;
-    descending?: boolean;
-  }): Promise<Cat[]> {
-    return super.findBy({
-      props: { name: params.name },
-      ...params,
-    });
+  findByName(
+    name: string,
+    options?: {
+      skip?: number;
+      limit?: number;
+      orderBy?: string;
+      descending?: boolean;
+    },
+  ) {
+    return super.findBy({ name }, options);
   }
 
-  async searchByName(params: {
-    search: string;
-    skip?: number;
-    limit?: number;
-  }): Promise<[Cat, number][]> {
-    return super.searchBy({
-      prop: 'name',
-      terms: params.search.split(' '),
-      skip: params.skip,
-      limit: params.limit,
-    });
+  searchByName(
+    name: string,
+    options?: {
+      skip?: number;
+      limit?: number;
+    },
+  ) {
+    return super.searchBy('name', name.split(' '), options);
   }
 }

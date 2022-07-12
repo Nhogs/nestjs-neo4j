@@ -1,8 +1,8 @@
-import { Body, Controller, Get, Param, Post } from "@nestjs/common";
-import { LikeService } from "../service/like.service";
-import { PersonService } from "../service/person.service";
-import { LikeDto } from "../dto/like.dto";
-import { PersonDto } from "../dto/person.dto";
+import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+import { LikeService } from '../service/like.service';
+import { PersonService } from '../service/person.service';
+import { LikeDto } from '../dto/like.dto';
+import { PersonDto } from '../dto/person.dto';
 
 @Controller('LIKE')
 export class LikeController {
@@ -16,14 +16,16 @@ export class LikeController {
     @Param('from') from: string,
     @Param('to') to: string,
     @Body() createLikedDto: LikeDto,
-  ) {
-    return this.likeService.create(
-      createLikedDto,
-      { name: from },
-      { name: to },
-      this.personService,
-      this.personService,
-    );
+  ): Promise<[PersonDto, LikeDto, PersonDto][]> {
+    return this.likeService
+      .create(
+        createLikedDto,
+        { name: from },
+        { name: to },
+        this.personService,
+        this.personService,
+      )
+      .run();
   }
 
   @Get('/:name')

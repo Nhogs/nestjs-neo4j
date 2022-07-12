@@ -7,12 +7,12 @@ export class CompanyController {
   constructor(private readonly companyService: CompanyService) {}
 
   @Post()
-  async create(@Body() createCompanyDto: CompanyDto) {
-    return this.companyService.create(createCompanyDto);
+  async create(@Body() createCompanyDto: CompanyDto): Promise<CompanyDto> {
+    return this.companyService.create(createCompanyDto).run();
   }
 
   @Get()
   async findAll(): Promise<CompanyDto[]> {
-    return this.companyService.findAll();
+    return this.companyService.findAll().run();
   }
 }

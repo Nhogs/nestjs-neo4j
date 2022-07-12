@@ -72,10 +72,10 @@ export abstract class Neo4jModelService<T> {
   }
 
   /**
-   * run query with debug log if logger is defined and convert results to objects.
+   * Run query with debug log if logger is defined and convert results to objects.
    */
   protected async _run(
-    query: Query,
+    query: Query<T>,
     sessionOptions?: SessionOptions,
     transactionConfig?: TransactionConfig,
   ) {

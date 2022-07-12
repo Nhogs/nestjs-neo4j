@@ -188,16 +188,16 @@ describe('Persons E2e', () => {
   });
 
   it(`Should create like query`, () => {
-    const query = likeService.createQuery(
+    const query = likeService.create(
       { when: '2020', since: '2000' },
       { name: 'Wong' },
       { name: 'Smith' },
       personService,
       personService,
     );
-    expect(query).toMatchInlineSnapshot(`
+    expect(query.query).toMatchInlineSnapshot(`
       Object {
-        "cypher": "MATCH (\`f\`:\`Person\`), (\`t\`:\`Person\`) WHERE f.\`name\` = $fp.\`name\` AND t.\`name\` = $tp.\`name\` CREATE (f)-[r:\`LIKE\`]->(t) SET r=$p RETURN properties(r) AS created",
+        "cypher": "MATCH (\`f\`:\`Person\`), (\`t\`:\`Person\`) WHERE f.\`name\` = $fp.\`name\` AND t.\`name\` = $tp.\`name\` CREATE (f)-[r:\`LIKE\`]->(t) SET r=$p RETURN properties (f) AS from, properties(r) AS created, properties(t) AS to",
         "parameters": Object {
           "fp": Object {
             "name": "Wong",

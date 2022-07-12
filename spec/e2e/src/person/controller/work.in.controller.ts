@@ -19,14 +19,16 @@ export class WorkInController {
     @Param('from') from: string,
     @Param('to') to: string,
     @Body() workInDto: WorkInDto,
-  ): Promise<WorkInDto[]> {
-    return this.workInService.create(
-      workInDto,
-      { name: from },
-      { name: to },
-      this.personService,
-      this.companyService,
-    );
+  ): Promise<[PersonDto, WorkInDto, CompanyDto][]> {
+    return this.workInService
+      .create(
+        workInDto,
+        { name: from },
+        { name: to },
+        this.personService,
+        this.companyService,
+      )
+      .run();
   }
 
   @Get()
