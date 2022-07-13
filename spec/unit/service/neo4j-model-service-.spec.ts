@@ -135,6 +135,12 @@ describe('Neo4jModelService', () => {
     ).toEqual(props);
   });
 
+  it('should runCypherConstraints without constraints', async () => {
+    expect(await serviceFixture.runCypherConstraints()).toMatchInlineSnapshot(
+      `Array []`,
+    );
+  });
+
   afterAll(async () => {
     return await app.cleanClose();
   });

@@ -132,9 +132,9 @@ export class Neo4jMetadataStorageDef {
     }
   }
 
-  getCypherConstraints(label?: string) {
+  getCypherConstraints(label?: string): string[] {
     if (label) {
-      return this._cypherConstraints.get(label);
+      return this._cypherConstraints.get(label) || [];
     } else {
       return ([] as string[]).concat(
         ...Array.from(this._cypherConstraints.values()),
