@@ -247,9 +247,9 @@ export abstract class Neo4jNodeModelService<T> extends Neo4jModelService<T> {
       runTx: (tx?: Transaction) => tx.run(query.cypher, query.parameters),
       run: async () => {
         const res = await this._run(query);
-        return res.map((r) => {
-          return [this.fromNeo4j(r.matched), r.score.toNumber()];
-        });
+        return res.map(
+          (r) => <[T, number]>[this.fromNeo4j(r.matched), r.score.toNumber()],
+        );
       },
     };
   }
