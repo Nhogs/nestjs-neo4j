@@ -18,7 +18,7 @@
 
 ## Installation
 
-![npm](https://img.shields.io/npm/v/@nhogs/nestjs-neo4j?logo=npm)
+[![npm](https://img.shields.io/npm/v/@nhogs/nestjs-neo4j?logo=npm)](https://www.npmjs.com/package/@nhogs/nestjs-neo4j)
 
 ```bash
 $ npm i --save @nhogs/nestjs-neo4j
