@@ -117,14 +117,14 @@ describe('Persons E2e', () => {
           .expect(200)
           .then((value) => {
             expect([value.body[0][0], value.body[0][2]]).toMatchInlineSnapshot(`
-              Array [
-                Object {
+              [
+                {
                   "age": 22,
                   "firstname": "Alexander",
                   "name": "Smith",
                   "surname": "alex",
                 },
-                Object {
+                {
                   "name": "Corp",
                 },
               ]
@@ -136,7 +136,7 @@ describe('Persons E2e', () => {
 
   it('should generate All constraints', () => {
     expect(neo4jService.getCypherConstraints()).toMatchInlineSnapshot(`
-      Array [
+      [
         "CREATE CONSTRAINT \`person_name_key\` IF NOT EXISTS FOR (p:\`Person\`) REQUIRE (p.\`name\`, p.\`firstname\`) IS NODE KEY",
         "CREATE CONSTRAINT \`person_firstname_exists\` IF NOT EXISTS FOR (p:\`Person\`) REQUIRE p.\`firstname\` IS NOT NULL",
         "CREATE CONSTRAINT \`person_surname_unique\` IF NOT EXISTS FOR (p:\`Person\`) REQUIRE p.\`surname\` IS UNIQUE",
@@ -152,7 +152,7 @@ describe('Persons E2e', () => {
 
   it('should generate Person constraints', () => {
     expect(neo4jService.getCypherConstraints('Person')).toMatchInlineSnapshot(`
-      Array [
+      [
         "CREATE CONSTRAINT \`person_name_key\` IF NOT EXISTS FOR (p:\`Person\`) REQUIRE (p.\`name\`, p.\`firstname\`) IS NODE KEY",
         "CREATE CONSTRAINT \`person_firstname_exists\` IF NOT EXISTS FOR (p:\`Person\`) REQUIRE p.\`firstname\` IS NOT NULL",
         "CREATE CONSTRAINT \`person_surname_unique\` IF NOT EXISTS FOR (p:\`Person\`) REQUIRE p.\`surname\` IS UNIQUE",
@@ -164,7 +164,7 @@ describe('Persons E2e', () => {
 
   it('should generate Company constraints', () => {
     expect(neo4jService.getCypherConstraints('Company')).toMatchInlineSnapshot(`
-      Array [
+      [
         "CREATE CONSTRAINT \`company_name_key\` IF NOT EXISTS FOR (p:\`Company\`) REQUIRE p.\`name\` IS NODE KEY",
       ]
     `);
@@ -172,7 +172,7 @@ describe('Persons E2e', () => {
 
   it('should generate LIKE constraints', () => {
     expect(neo4jService.getCypherConstraints('LIKE')).toMatchInlineSnapshot(`
-      Array [
+      [
         "CREATE CONSTRAINT \`like_when_exists\` IF NOT EXISTS FOR ()-[p:\`LIKE\`]-() REQUIRE p.\`when\` IS NOT NULL",
         "CREATE CONSTRAINT \`like_since_exists\` IF NOT EXISTS FOR ()-[p:\`LIKE\`]-() REQUIRE p.\`since\` IS NOT NULL",
       ]
@@ -181,7 +181,7 @@ describe('Persons E2e', () => {
 
   it('should generate WORK_IN constraints', () => {
     expect(neo4jService.getCypherConstraints('WORK_IN')).toMatchInlineSnapshot(`
-      Array [
+      [
         "CREATE CONSTRAINT \`work_in_since_exists\` IF NOT EXISTS FOR ()-[p:\`WORK_IN\`]-() REQUIRE p.\`since\` IS NOT NULL",
       ]
     `);
@@ -196,17 +196,17 @@ describe('Persons E2e', () => {
       personService,
     );
     expect(query.query).toMatchInlineSnapshot(`
-      Object {
+      {
         "cypher": "MATCH (\`f\`:\`Person\`), (\`t\`:\`Person\`) WHERE f.\`name\` = $fp.\`name\` AND t.\`name\` = $tp.\`name\` CREATE (f)-[r:\`LIKE\`]->(t) SET r=$p RETURN properties (f) AS from, properties(r) AS created, properties(t) AS to",
-        "parameters": Object {
-          "fp": Object {
+        "parameters": {
+          "fp": {
             "name": "Wong",
           },
-          "p": Object {
+          "p": {
             "since": "2000",
             "when": "2020",
           },
-          "tp": Object {
+          "tp": {
             "name": "Smith",
           },
         },

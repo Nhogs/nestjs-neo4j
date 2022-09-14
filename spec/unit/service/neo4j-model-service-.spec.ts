@@ -53,7 +53,7 @@ describe('Neo4jModelService', () => {
 
   it('should toNeo4j', async () => {
     expect(serviceFixture.toNeo4j({ name: 'myNode' })).toMatchInlineSnapshot(`
-      Object {
+      {
         "name": "myNode",
       }
     `);
@@ -61,7 +61,7 @@ describe('Neo4jModelService', () => {
 
   it('should fromNeo4j', async () => {
     expect(serviceFixture.fromNeo4j({ name: 'myNode' })).toMatchInlineSnapshot(`
-      Object {
+      {
         "name": "myNode",
       }
     `);
@@ -73,7 +73,7 @@ describe('Neo4jModelService', () => {
         name: 'myNode',
       }),
     ).toMatchInlineSnapshot(`
-      Object {
+      {
         "name": "myNode",
       }
     `);
@@ -85,7 +85,7 @@ describe('Neo4jModelService', () => {
         name: 'myNode',
       }),
     ).toMatchInlineSnapshot(`
-      Object {
+      {
         "name": "myNode",
       }
     `);
@@ -98,7 +98,7 @@ describe('Neo4jModelService', () => {
         created: new Date(1657455914905),
       }),
     ).toMatchInlineSnapshot(`
-      Object {
+      {
         "created": Integer {
           "high": 385,
           "low": -401461351,
@@ -115,7 +115,7 @@ describe('Neo4jModelService', () => {
         created: int(1657455914905),
       }),
     ).toMatchInlineSnapshot(`
-      Object {
+      {
         "created": 2022-07-10T12:25:14.905Z,
         "name": "myNode",
       }
@@ -137,7 +137,7 @@ describe('Neo4jModelService', () => {
 
   it('should runCypherConstraints without constraints', async () => {
     expect(await serviceFixture.runCypherConstraints()).toMatchInlineSnapshot(
-      `Array []`,
+      `[]`,
     );
   });
 

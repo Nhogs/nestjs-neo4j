@@ -1,5 +1,5 @@
-import { Neo4jService } from "../../../lib";
-import { createNeo4jTestApp, Neo4jTestApp } from "../../helpers";
+import { Neo4jService } from '../../../lib';
+import { createNeo4jTestApp, Neo4jTestApp } from '../../helpers';
 
 describe('Neo4jService', () => {
   let app: Neo4jTestApp;
@@ -14,9 +14,10 @@ describe('Neo4jService', () => {
 
   it('should verifyConnectivity', async () => {
     expect(await app.neo4jService.verifyConnectivity()).toMatchInlineSnapshot(`
-      Object {
+      ServerInfo {
         "address": "localhost:7687",
-        "version": "Neo4j/4.4.8",
+        "agent": "Neo4j/4.4.11",
+        "protocolVersion": 4.4,
       }
     `);
   });
@@ -43,8 +44,8 @@ describe('Neo4jService', () => {
     );
     expect(queryResult.records.map((r) => r.get('node')))
       .toMatchInlineSnapshot(`
-      Array [
-        Object {
+      [
+        {
           "msg": "hello",
         },
       ]
@@ -64,10 +65,10 @@ describe('Neo4jService', () => {
       .subscribe({
         next: (record) => {
           expect(record.get('node')).toMatchInlineSnapshot(`
-          Object {
-            "msg": "hello rx",
-          }
-          `);
+{
+  "msg": "hello rx",
+}
+`);
         },
         complete: () => {
           done();

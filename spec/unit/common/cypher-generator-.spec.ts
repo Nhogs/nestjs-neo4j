@@ -81,16 +81,16 @@ describe('Query Generator', () => {
   });
 
   it('should neo4jSkipLimit()', async () => {
-    expect(neo4jSkipLimit()).toMatchInlineSnapshot(`Object {}`);
+    expect(neo4jSkipLimit()).toMatchInlineSnapshot(`{}`);
   });
 
   it('should neo4jSkipLimit({})', async () => {
-    expect(neo4jSkipLimit({})).toMatchInlineSnapshot(`Object {}`);
+    expect(neo4jSkipLimit({})).toMatchInlineSnapshot(`{}`);
   });
 
   it('should SKIP_LIMIT({ skip: 0 })', async () => {
     expect(neo4jSkipLimit({ skip: 0 })).toMatchInlineSnapshot(`
-      Object {
+      {
         "skip": Integer {
           "high": 0,
           "low": 0,
@@ -101,7 +101,7 @@ describe('Query Generator', () => {
 
   it('should SKIP_LIMIT({ limit: 100 })', async () => {
     expect(neo4jSkipLimit({ limit: 100 })).toMatchInlineSnapshot(`
-      Object {
+      {
         "limit": Integer {
           "high": 0,
           "low": 100,
@@ -112,7 +112,7 @@ describe('Query Generator', () => {
 
   it('should SKIP_LIMIT({ skip: 0, limit: 10 })', async () => {
     expect(neo4jSkipLimit({ skip: 0, limit: 10 })).toMatchInlineSnapshot(`
-      Object {
+      {
         "limit": Integer {
           "high": 0,
           "low": 10,

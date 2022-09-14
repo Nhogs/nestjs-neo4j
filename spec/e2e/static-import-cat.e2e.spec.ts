@@ -36,13 +36,13 @@ describe('Cats E2e', () => {
   it(`should runCypherConstraints`, async () => {
     return expect(await catsService.runCypherConstraints())
       .toMatchInlineSnapshot(`
-                      Array [
-                        "CREATE CONSTRAINT \`cat_name_key\` IF NOT EXISTS FOR (p:\`Cat\`) REQUIRE p.\`name\` IS NODE KEY",
-                        "CREATE CONSTRAINT \`cat_age_exists\` IF NOT EXISTS FOR (p:\`Cat\`) REQUIRE p.\`age\` IS NOT NULL",
-                        "CREATE CONSTRAINT \`cat_breed_exists\` IF NOT EXISTS FOR (p:\`Cat\`) REQUIRE p.\`breed\` IS NOT NULL",
-                        "CREATE CONSTRAINT \`cat_created_exists\` IF NOT EXISTS FOR (p:\`Cat\`) REQUIRE p.\`created\` IS NOT NULL",
-                      ]
-                  `);
+              [
+                "CREATE CONSTRAINT \`cat_name_key\` IF NOT EXISTS FOR (p:\`Cat\`) REQUIRE p.\`name\` IS NODE KEY",
+                "CREATE CONSTRAINT \`cat_age_exists\` IF NOT EXISTS FOR (p:\`Cat\`) REQUIRE p.\`age\` IS NOT NULL",
+                "CREATE CONSTRAINT \`cat_breed_exists\` IF NOT EXISTS FOR (p:\`Cat\`) REQUIRE p.\`breed\` IS NOT NULL",
+                "CREATE CONSTRAINT \`cat_created_exists\` IF NOT EXISTS FOR (p:\`Cat\`) REQUIRE p.\`created\` IS NOT NULL",
+              ]
+            `);
   });
 
   it(`should create Cat query`, async () => {
@@ -53,10 +53,10 @@ describe('Cats E2e', () => {
         breed: 'Maine Coon',
       }).query,
     ).toMatchInlineSnapshot(`
-      Object {
+      {
         "cypher": "CREATE (\`n\`:\`Cat\`) SET n=$props, \`n\`.\`created\` = timestamp() RETURN properties(\`n\`) AS \`created\`",
-        "parameters": Object {
-          "props": Object {
+        "parameters": {
+          "props": {
             "age": Integer {
               "high": 0,
               "low": 5,
@@ -83,7 +83,7 @@ describe('Cats E2e', () => {
         created: expect.any(Date),
       },
       `
-      Object {
+      {
         "age": 5,
         "breed": "Maine Coon",
         "created": Any<Date>,
@@ -99,8 +99,8 @@ describe('Cats E2e', () => {
         },
       ],
       `
-              Array [
-                Object {
+              [
+                {
                   "age": 5,
                   "breed": "Maine Coon",
                   "created": Any<Date>,
@@ -114,13 +114,13 @@ describe('Cats E2e', () => {
   it(`should update Cat query`, async () => {
     expect(catsService.update({ name: 'Gypsy' }, { name: 'Curly' }).query)
       .toMatchInlineSnapshot(`
-      Object {
+      {
         "cypher": "MATCH (\`n\`:\`Cat\` {\`name\`: $\`props\`.\`name\`}) SET n += $updates RETURN properties(\`n\`) AS \`updated\`",
-        "parameters": Object {
-          "props": Object {
+        "parameters": {
+          "props": {
             "name": "Gypsy",
           },
-          "updates": Object {
+          "updates": {
             "name": "Curly",
           },
         },
@@ -144,7 +144,7 @@ describe('Cats E2e', () => {
         created: expect.any(Date),
       },
       `
-      Object {
+      {
         "age": 5,
         "breed": "Maine Coon",
         "created": Any<Date>,
@@ -162,10 +162,10 @@ describe('Cats E2e', () => {
         breed: 'Maine Coon',
       }).query,
     ).toMatchInlineSnapshot(`
-      Object {
+      {
         "cypher": "MERGE (\`n\`:\`Cat\` {\`name\`: $\`props\`.\`name\`, \`age\`: $\`props\`.\`age\`, \`breed\`: $\`props\`.\`breed\`}) ON CREATE SET \`n\`.\`created\` = timestamp() RETURN properties(\`n\`) AS \`merged\`",
-        "parameters": Object {
-          "props": Object {
+        "parameters": {
+          "props": {
             "age": Integer {
               "high": 0,
               "low": 5,
@@ -194,7 +194,7 @@ describe('Cats E2e', () => {
         created: expect.any(Date),
       },
       `
-      Object {
+      {
         "age": 5,
         "breed": "Maine Coon",
         "created": Any<Date>,
@@ -218,7 +218,7 @@ describe('Cats E2e', () => {
         created: expect.any(Date),
       },
       `
-      Object {
+      {
         "age": 5,
         "breed": "Maine Coon",
         "created": Any<Date>,
@@ -234,15 +234,15 @@ describe('Cats E2e', () => {
         },
       ],
       `
-                      Array [
-                        Object {
-                          "age": 5,
-                          "breed": "Maine Coon",
-                          "created": Any<Date>,
-                          "name": "Gypsy",
-                        },
-                      ]
-                  `,
+              [
+                {
+                  "age": 5,
+                  "breed": "Maine Coon",
+                  "created": Any<Date>,
+                  "name": "Gypsy",
+                },
+              ]
+            `,
     );
   });
 
@@ -252,10 +252,10 @@ describe('Cats E2e', () => {
         name: 'Gypsy',
       }).query,
     ).toMatchInlineSnapshot(`
-      Object {
+      {
         "cypher": "MATCH (\`n\`:\`Cat\` {\`name\`: $\`props\`.\`name\`}) WITH n, properties(n) AS \`deleted\` DELETE n RETURN \`deleted\`",
-        "parameters": Object {
-          "props": Object {
+        "parameters": {
+          "props": {
             "name": "Gypsy",
           },
         },
@@ -285,8 +285,8 @@ describe('Cats E2e', () => {
         },
       ],
       `
-      Array [
-        Object {
+      [
+        {
           "age": 5,
           "breed": "Maine Coon",
           "created": Any<Date>,
@@ -297,21 +297,21 @@ describe('Cats E2e', () => {
     );
 
     return expect(await catsService.findAll().run()).toMatchInlineSnapshot(
-      `Array []`,
+      `[]`,
     );
   });
 
   it(`should findBy query`, async () => {
     return expect(catsService.findBy({ name: 'Gypsy' }).query)
       .toMatchInlineSnapshot(`
-              Object {
+              {
                 "cypher": "MATCH (\`n\`:\`Cat\` {\`name\`: $\`props\`.\`name\`}) RETURN properties(\`n\`) AS \`matched\`",
-                "parameters": Object {
+                "parameters": {
                   "limit": Integer {
                     "high": 0,
                     "low": 100,
                   },
-                  "props": Object {
+                  "props": {
                     "name": "Gypsy",
                   },
                   "skip": Integer {
@@ -341,29 +341,29 @@ describe('Cats E2e', () => {
         },
       ],
       `
-                      Array [
-                        Object {
-                          "age": 5,
-                          "breed": "Maine Coon",
-                          "created": Any<Date>,
-                          "name": "Gypsy",
-                        },
-                      ]
-                  `,
+              [
+                {
+                  "age": 5,
+                  "breed": "Maine Coon",
+                  "created": Any<Date>,
+                  "name": "Gypsy",
+                },
+              ]
+            `,
     );
   });
 
   it(`should searchBy query`, async () => {
     return expect(catsService.searchBy('name', 'psy').query)
       .toMatchInlineSnapshot(`
-              Object {
+              {
                 "cypher": "MATCH (\`n\`:\`Cat\`) WITH n, split(n.\`name\`, ' ') as words
                   WHERE ANY (term IN $terms WHERE ANY(word IN words WHERE word CONTAINS term))
                   WITH n, words, 
                   CASE WHEN apoc.text.join($terms, '') = apoc.text.join(words, '') THEN 100
                   ELSE reduce(s = 0, st IN $terms | s + reduce(s2 = 0, w IN words | CASE WHEN (w = st) THEN (s2 + 4) ELSE CASE WHEN (w CONTAINS st) THEN (s2 +2) ELSE (s2) END END)) END AS score 
                   ORDER BY score DESC SKIP $skip LIMIT $limit RETURN properties(n) as \`matched\`, score",
-                "parameters": Object {
+                "parameters": {
                   "limit": Integer {
                     "high": 0,
                     "low": 100,
@@ -372,7 +372,7 @@ describe('Cats E2e', () => {
                     "high": 0,
                     "low": 0,
                   },
-                  "terms": Array [
+                  "terms": [
                     "psy",
                   ],
                 },
@@ -399,9 +399,9 @@ describe('Cats E2e', () => {
         t[1],
       ]),
     ).toMatchInlineSnapshot(`
-              Array [
-                Array [
-                  Object {
+              [
+                [
+                  {
                     "age": 5,
                     "breed": "Maine Coon",
                     "created": "x",

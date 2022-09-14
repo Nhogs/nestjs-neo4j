@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   neo4j:
-    image: neo4j:4.4.8-enterprise
+    image: neo4j:4.4.11-enterprise
     restart: unless-stopped
     ports:
       - "7474:7474"

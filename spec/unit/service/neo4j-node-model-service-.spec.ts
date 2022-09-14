@@ -54,10 +54,10 @@ describe('Neo4jModelService', () => {
   it('should create', async () => {
     expect(serviceFixture.create({ name: 'name' }).query)
       .toMatchInlineSnapshot(`
-      Object {
+      {
         "cypher": "CREATE (\`n\`:\`withoutTimestamp\`) SET n=$props RETURN properties(\`n\`) AS \`created\`",
-        "parameters": Object {
-          "props": Object {
+        "parameters": {
+          "props": {
             "name": "name",
           },
         },
@@ -68,10 +68,10 @@ describe('Neo4jModelService', () => {
   it('should create with timestamp', async () => {
     expect(serviceFixtureWithTimestamp.create({ name: 'name' }).query)
       .toMatchInlineSnapshot(`
-      Object {
+      {
         "cypher": "CREATE (\`n\`:\`NodeWithTimestamp\`) SET n=$props, \`n\`.\`created\` = timestamp() RETURN properties(\`n\`) AS \`created\`",
-        "parameters": Object {
-          "props": Object {
+        "parameters": {
+          "props": {
             "name": "name",
           },
         },
