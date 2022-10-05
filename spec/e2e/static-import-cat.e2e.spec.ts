@@ -92,22 +92,28 @@ describe('Cats E2e', () => {
     `,
     );
 
-    return expect(await catsService.findAll().run()).toMatchInlineSnapshot(
-      [
-        {
-          created: expect.any(Date),
-        },
-      ],
+    return expect({
+      cats: await catsService.findAll().run(),
+    }).toMatchInlineSnapshot(
+      {
+        cats: [
+          {
+            created: expect.any(Date),
+          },
+        ],
+      },
       `
-              [
-                {
-                  "age": 5,
-                  "breed": "Maine Coon",
-                  "created": Any<Date>,
-                  "name": "Gypsy",
-                },
-              ]
-            `,
+                      {
+                        "cats": [
+                          {
+                            "age": 5,
+                            "breed": "Maine Coon",
+                            "created": Any<Date>,
+                            "name": "Gypsy",
+                          },
+                        ],
+                      }
+                  `,
     );
   });
 
@@ -227,21 +233,27 @@ describe('Cats E2e', () => {
     `,
     );
 
-    return expect(await catsService.findAll().run()).toMatchInlineSnapshot(
-      [
-        {
-          created: expect.any(Date),
-        },
-      ],
+    return expect({
+      cats: await catsService.findAll().run(),
+    }).toMatchInlineSnapshot(
+      {
+        cats: [
+          {
+            created: expect.any(Date),
+          },
+        ],
+      },
       `
-              [
-                {
-                  "age": 5,
-                  "breed": "Maine Coon",
-                  "created": Any<Date>,
-                  "name": "Gypsy",
-                },
-              ]
+              {
+                "cats": [
+                  {
+                    "age": 5,
+                    "breed": "Maine Coon",
+                    "created": Any<Date>,
+                    "name": "Gypsy",
+                  },
+                ],
+              }
             `,
     );
   });
@@ -272,27 +284,31 @@ describe('Cats E2e', () => {
       })
       .run();
 
-    expect(
-      await catsService
+    expect({
+      cats: await catsService
         .delete({
           name: 'Gypsy',
         })
         .run(),
-    ).toMatchInlineSnapshot(
-      [
-        {
-          created: expect.any(Date),
-        },
-      ],
+    }).toMatchInlineSnapshot(
+      {
+        cats: [
+          {
+            created: expect.any(Date),
+          },
+        ],
+      },
       `
-      [
-        {
-          "age": 5,
-          "breed": "Maine Coon",
-          "created": Any<Date>,
-          "name": "Gypsy",
-        },
-      ]
+      {
+        "cats": [
+          {
+            "age": 5,
+            "breed": "Maine Coon",
+            "created": Any<Date>,
+            "name": "Gypsy",
+          },
+        ],
+      }
     `,
     );
 
@@ -332,23 +348,27 @@ describe('Cats E2e', () => {
       })
       .run();
 
-    return expect(
-      await catsService.findByName('Gypsy').run(),
-    ).toMatchInlineSnapshot(
-      [
-        {
-          created: expect.any(Date),
-        },
-      ],
+    return expect({
+      cats: await catsService.findByName('Gypsy').run(),
+    }).toMatchInlineSnapshot(
+      {
+        cats: [
+          {
+            created: expect.any(Date),
+          },
+        ],
+      },
       `
-              [
-                {
-                  "age": 5,
-                  "breed": "Maine Coon",
-                  "created": Any<Date>,
-                  "name": "Gypsy",
-                },
-              ]
+              {
+                "cats": [
+                  {
+                    "age": 5,
+                    "breed": "Maine Coon",
+                    "created": Any<Date>,
+                    "name": "Gypsy",
+                  },
+                ],
+              }
             `,
     );
   });

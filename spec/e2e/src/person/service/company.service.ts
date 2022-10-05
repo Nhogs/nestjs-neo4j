@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { Neo4jService } from '../../../../../lib';
-import { Neo4jNodeModelService } from '../../../../../lib/service/neo4j.node.model.service';
+import { Neo4jNodeModelService, Neo4jService } from '../../../../../lib';
 import { CompanyDto } from '../dto/company.dto';
 
 @Injectable()

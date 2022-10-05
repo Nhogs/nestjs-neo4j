@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { Cat } from './dto/cat';
-import { int, Neo4jService } from '../../../../lib';
-import { Neo4jNodeModelService } from '../../../../lib/service/neo4j.node.model.service';
+import { int, Neo4jNodeModelService, Neo4jService } from '../../../../lib';
 
 @Injectable()
 export class CatsService extends Neo4jNodeModelService<Cat> {
