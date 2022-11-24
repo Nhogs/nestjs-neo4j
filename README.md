@@ -7,7 +7,7 @@
 [Neo4j](https://neo4j.com/) module for [Nest.js](https://github.com/nestjs/nest).
 
 [![e2e-test](https://github.com/nhogs/nestjs-neo4j/actions/workflows/e2e-test.yml/badge.svg)](https://github.com/Nhogs/nestjs-neo4j/actions/workflows/e2e-test.yml)
-[![Docker-tested-version](https://img.shields.io/badge/E2e%20tests%20on-neo4j%3A4.4.11--enterprise-blue?logo=docker)](https://hub.docker.com/layers/neo4j/library/neo4j/4.4.11-enterprise/images/sha256-c6e315b42b260c81177c7ae5645e4fec5be7b0c9febada7d38df8cd698cd1a3b?context=explore)
+[![Docker-tested-version](https://img.shields.io/badge/E2e%20tests%20on-neo4j%3A5.2.0--enterprise-blue?logo=docker)](https://registry.hub.docker.com/layers/library/neo4j/5.2.0-enterprise/images/sha256-b43013f0cd7d74e1e4497d3756cdb7ccb1b8b219bad3407c58956e215ef3a56f?context=explore)
 [![Maintainability](https://api.codeclimate.com/v1/badges/2de17798cf9b4d9cfd83/maintainability)](https://codeclimate.com/github/Nhogs/nestjs-neo4j/maintainability)
 [![Test Coverage](https://api.codeclimate.com/v1/badges/2de17798cf9b4d9cfd83/test_coverage)](https://codeclimate.com/github/Nhogs/nestjs-neo4j/test_coverage)
 
