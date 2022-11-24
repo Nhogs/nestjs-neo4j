@@ -1,9 +1,4 @@
-import {
-  NodeKey,
-  NotNull,
-  Unique,
-  Node,
-} from '../../../../../lib';
+import { NodeKey, NotNull, Unique, Node } from '../../../../../lib';
 
 @Node({ label: 'Person' })
 export class PersonDto {

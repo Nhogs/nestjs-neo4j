@@ -1,7 +1,10 @@
-import { Injectable, Logger } from "@nestjs/common";
-import { Neo4jRelationshipModelService, Neo4jService } from "../../../../../lib";
-import { PersonDto } from "../dto/person.dto";
-import { LikeDto } from "../dto/like.dto";
+import { Injectable, Logger } from '@nestjs/common';
+import {
+  Neo4jRelationshipModelService,
+  Neo4jService,
+} from '../../../../../lib';
+import { PersonDto } from '../dto/person.dto';
+import { LikeDto } from '../dto/like.dto';
 
 @Injectable()
 export class LikeService extends Neo4jRelationshipModelService<LikeDto> {

@@ -16,8 +16,8 @@ describe('Neo4jService', () => {
     expect(await app.neo4jService.verifyConnectivity()).toMatchInlineSnapshot(`
       ServerInfo {
         "address": "localhost:7687",
-        "agent": "Neo4j/4.4.11",
-        "protocolVersion": 4.4,
+        "agent": "Neo4j/5.2.0",
+        "protocolVersion": 5,
       }
     `);
   });
