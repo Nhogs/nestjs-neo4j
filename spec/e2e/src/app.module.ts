@@ -10,7 +10,7 @@ import { CatsModule } from './cat/cats.module';
       port: '7687',
       database: 'neo4j',
       username: 'neo4j',
-      password: 'test',
+      password: 'test_password',
       global: true,
     }),
     CatsModule,

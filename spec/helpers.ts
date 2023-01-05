@@ -20,7 +20,7 @@ export async function createNeo4jTestingModule() {
         port: '7687',
         database: 'neo4j',
         username: 'neo4j',
-        password: 'test',
+        password: 'test_password',
       }),
     ],
   }).compile();
