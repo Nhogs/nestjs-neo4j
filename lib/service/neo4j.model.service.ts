@@ -43,7 +43,7 @@ export abstract class Neo4jModelService<T> {
    */
   public fromNeo4j(record: Record<string, any>): T {
     let result: Record<string, any> = { ...record };
-    if (this.timestamp && record && record[this.timestamp]) {
+    if (this.timestamp && typeof result[this.timestamp] !== "number" && record && record[this.timestamp]) {
       result[this.timestamp] = new Date(result[this.timestamp].toNumber());
     }
     return result as T;
