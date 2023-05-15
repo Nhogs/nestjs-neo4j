@@ -32,7 +32,11 @@ export abstract class Neo4jModelService<T> {
   public toNeo4j(params: Partial<T>): Record<string, any> {
     let result: Record<string, any> = { ...params };
     if (this.timestamp && params && params[this.timestamp]) {
-      result[this.timestamp] = int(params[this.timestamp].getTime());
+      if (this.neo4jService.getConfig().disableLosslessIntegers) {
+        result[this.timestamp] = params[this.timestamp].getTime();
+      } else {
+        result[this.timestamp] = int(params[this.timestamp].getTime());
+      }
     }
     return { ...result };
   }
@@ -44,7 +48,7 @@ export abstract class Neo4jModelService<T> {
   public fromNeo4j(record: Record<string, any>): T {
     let result: Record<string, any> = { ...record };
     if (this.timestamp && record && record[this.timestamp]) {
-      result[this.timestamp] = new Date(result[this.timestamp].toNumber());
+      result[this.timestamp] = new Date(Number(result[this.timestamp]));
     }
     return result as T;
   }

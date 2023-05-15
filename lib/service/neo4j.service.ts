@@ -34,6 +34,10 @@ export class Neo4jService implements OnApplicationShutdown {
     };
   }
 
+  getConfig() {
+    return this.config;
+  }
+
   /**
    * Verifies connectivity of this driver by trying to open a connection with the provided driver options.
    */
