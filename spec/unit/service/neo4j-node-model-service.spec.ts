@@ -1,7 +1,7 @@
 import { Logger } from '@nestjs/common';
 import { Neo4jModelService, Neo4jService } from '../../../lib';
 import { createNeo4jTestApp, Neo4jTestApp } from '../../helpers';
-import { Neo4jNodeModelService } from '../../../lib/service/neo4j.node.model.service';
+import { Neo4jNodeModelService } from "../../../lib";
 
 class NodeFixture {
   name: string;
