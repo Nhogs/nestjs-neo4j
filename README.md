@@ -7,7 +7,7 @@
 [Neo4j](https://neo4j.com/) module for [Nest.js](https://github.com/nestjs/nest).
 
 [![e2e-test](https://github.com/nhogs/nestjs-neo4j/actions/workflows/e2e-test.yml/badge.svg)](https://github.com/Nhogs/nestjs-neo4j/actions/workflows/e2e-test.yml)
-[![Docker-tested-version](https://img.shields.io/badge/E2e%20tests%20on-neo4j%3A5.9.0--enterprise-blue?logo=docker)](https://registry.hub.docker.com/_/neo4j/tags)
+[![Docker-tested-version](https://img.shields.io/badge/E2e%20tests%20on-neo4j%3A5.10.0--enterprise-blue?logo=docker)](https://registry.hub.docker.com/_/neo4j/tags)
 [![Maintainability](https://api.codeclimate.com/v1/badges/2de17798cf9b4d9cfd83/maintainability)](https://codeclimate.com/github/Nhogs/nestjs-neo4j/maintainability)
 [![Test Coverage](https://api.codeclimate.com/v1/badges/2de17798cf9b4d9cfd83/test_coverage)](https://codeclimate.com/github/Nhogs/nestjs-neo4j/test_coverage)
 
