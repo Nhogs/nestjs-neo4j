@@ -17,7 +17,7 @@ jobs:
           node-version: 18
           cache: 'npm'
       - name: Docker compose
-        run: docker-compose up -d --build
+        run: docker compose up -d --build
       - name: Install npm dependencies
         run: npm ci
       - name: Build code
