@@ -1,4 +1,3 @@
-import { Neo4jService } from '../../../lib';
 import { createNeo4jTestApp, Neo4jTestApp } from '../../helpers';
 
 describe('Neo4jService', () => {
@@ -16,7 +15,7 @@ describe('Neo4jService', () => {
     expect(await app.neo4jService.verifyConnectivity()).toMatchInlineSnapshot(`
       ServerInfo {
         "address": "localhost:7687",
-        "agent": "Neo4j/5.19.0",
+        "agent": "Neo4j/5.22.0",
         "protocolVersion": 5.4,
       }
     `);
