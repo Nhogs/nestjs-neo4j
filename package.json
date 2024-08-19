@@ -2,7 +2,7 @@
   "name": "@nhogs/nestjs-neo4j",
   "version": "0.5.16",
   "engines": {
-    "node": ">=18.x"
+    "node": ">=20.x"
   },
   "description": "Neo4j module for Nest framework",
   "author": "Frederic Ciminera",
